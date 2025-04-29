@@ -1,5 +1,7 @@
 <?php
 
+
+
 // Load Scripts
 function mytheme_enqueue_scripts() {
     // Enqueue jQuery (optional if your theme already loads it)
