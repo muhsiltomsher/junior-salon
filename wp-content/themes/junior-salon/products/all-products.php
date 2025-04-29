@@ -1,3 +1,62 @@
+<!-- Sort By Button -->
+<button onclick="openDrawer('Sort By', '<?php echo esc_url( home_url('/wp-content/themes/junior-salon/products/sort-drawer.php') ); ?>')" 
+        class="flex items-center bg-transparent group m-0">
+    <span class="text-lg">Sort By</span>
+</button>
+
+<!-- Drawer Container -->
+<div id="drawer" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden">
+    <div class="absolute top-0 right-0 bg-white w-3/4 md:w-1/2 h-full p-6 transform transition-transform duration-300 ease-in-out translate-x-full" id="drawer-panel">
+        <!-- Close Button -->
+        <button id="close-drawer" class="absolute top-4 right-4 text-xl text-gray-500 hover:text-gray-700">&times;</button>
+        
+        <!-- Dynamic Content -->
+        <div id="drawer-content">
+            <!-- Loaded via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+function openDrawer(title, url) {
+    const drawer = document.getElementById('drawer');
+    const drawerPanel = document.getElementById('drawer-panel');
+    const drawerContent = document.getElementById('drawer-content');
+
+    // Show overlay and drawer
+    drawer.classList.remove('hidden');
+    setTimeout(() => drawerPanel.classList.remove('translate-x-full'), 10);
+
+    // Load content
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            drawerContent.innerHTML = html;
+        })
+        .catch(err => {
+            drawerContent.innerHTML = '<p class="text-red-500">Failed to load content.</p>';
+        });
+}
+
+// Close drawer handler
+document.getElementById('close-drawer').addEventListener('click', closeDrawer);
+document.getElementById('drawer').addEventListener('click', function(e) {
+    if (e.target === this) closeDrawer();
+});
+
+function closeDrawer() {
+    const drawer = document.getElementById('drawer');
+    const drawerPanel = document.getElementById('drawer-panel');
+
+    drawerPanel.classList.add('translate-x-full');
+    setTimeout(() => drawer.classList.add('hidden'), 300); // Match transition duration
+}
+</script>
+
+
+<h2 class="text-3xl font-bold mb-6">NEW FOR KIDS</h2>
+
 <?php
 // Query for WooCommerce products
 $args = array(
@@ -21,10 +80,15 @@ if ($loop->have_posts()) :
                     <?php endif; ?>
                 </a>
 
-                <!-- Brand Name (Assuming brand is a custom ACF field called 'brand') -->
-                <?php if ($brand = get_field('brand')) : ?>
-                    <div class="text-sm text-gray-500 mb-1"><?php echo esc_html($brand); ?></div>
-                <?php endif; ?>
+         <?php      $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+
+if (!empty($brands) && !is_wp_error($brands)) {
+    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
+}
+        ?>            
+                    
+                    
+               
 
                 <!-- Product Name -->
                 <h2 class="text-md font-semibold mb-2">
