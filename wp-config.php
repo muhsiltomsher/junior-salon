@@ -21,18 +21,13 @@
 
 // ** Database settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
-
-
-// define( 'DB_NAME', 'tomsher2022_Junior-salon25' ); 
-define( 'DB_NAME', 'junior-salon-26' );
+define( 'DB_NAME', 'tomsher2022_junior-salon25' );
 
 /** Database username */
-// define( 'DB_USER', 'tomsher2022_Junior-salon25' );
 define( 'DB_USER', 'root' );
 
 /** Database password */
 define( 'DB_PASSWORD', '' );
-// define( 'DB_PASSWORD', 'k59aLA6l3_*r' );
 
 /** Database hostname */
 define( 'DB_HOST', 'localhost:3306' );
