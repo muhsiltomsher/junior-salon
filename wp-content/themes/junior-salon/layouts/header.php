@@ -9,7 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-thin-rounded/css/uicons-thin-rounded.css'>
+
+    
     
 
     <?php wp_head(); ?>
@@ -17,7 +18,7 @@
 <body <?php body_class(); ?>>
 	
 	<div class="bg-white w-full py-2 shadow-md">
-    <div class="container mx-auto flex justify-between items-center px-2">
+    <div class="max-w-7xl mx-auto flex justify-between items-center px-4 sm:px-6 lg:px-8">
         <!-- Tagline -->
         <div class="text-gray-800 text-sm font-semibold">
             <?php echo esc_html(get_theme_mod('top_bar_tagline', 'Super Save')); ?>
@@ -104,29 +105,6 @@
             <?php get_template_part('layouts/mainmenu'); ?>
         </div>
     </div>
-
-
-
-
-<!-- My Account Button -->
-<button onclick="openDrawer('My Account', '<?php echo esc_url( home_url('/wp-content/themes/junior-salon/layouts/account-drawer.php') ); ?>')" class="flex items-center group bg-transparent m-0">
-    <div class="h-10 w-10 flex items-center justify-center rounded-full border border-transparent group-hover:border-white transition-all duration-300">
-        <img src="http://junior-salon.tomsher.net/wp-content/uploads/2025/04/user-account.svg" alt="Account" class="h-6 w-6">
-    </div>
-</button>
-
-<!-- Cart Button -->
-<button onclick="openDrawer('Your Cart', '<?php echo esc_url( home_url('/wp-content/themes/junior-salon/layouts/cart-drawer.php') ); ?>')" class="flex items-center bg-transparent group m-0">
-    <div class="h-10 w-10 flex items-center justify-center rounded-full border border-transparent group-hover:border-white transition-all duration-300 relative">
-        <img src="http://junior-salon.tomsher.net/wp-content/uploads/2025/04/cart.svg" alt="Cart" class="h-6 w-6">
-        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
-            <?php echo WC()->cart->get_cart_contents_count(); ?>
-        </span>
-    </div>
-</button>
-
-<?php get_template_part('components/drawer'); ?>
-
 
 </header>
 
