@@ -1,34 +1,58 @@
-
-
-
-
-<!--<button onclick="openDrawer('Sort By', '<?php echo esc_url( home_url('/wp-content/themes/junior-salon/products/sort-drawer.php') ); ?>')" class="flex items-center bg-transparent group m-0"> -->
-<!--       <span class="text-lg">Sort By</span>-->
-<!--</button>-->
-
-<!--<div id="drawer" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden">-->
-<!--    <div class="absolute top-0 right-0 bg-white w-3/4 md:w-1/2 h-full p-6 transform transition-transform duration-300 ease-in-out" style="transform: translateX(100%);">-->
-<!--        <button id="close-drawer" class="absolute top-4 right-4 text-xl text-gray-500 hover:text-gray-700">&times;</button>-->
-<!--        <div id="drawer-content">-->
-       
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
-
-
-
 <!-- Sort By Button -->
-<button onclick="openDrawer('Sort By', '<?php echo esc_url( get_template_directory_uri() . '/products/sort-drawer.php' ); ?>')" class="flex items-center bg-transparent group m-0"> 
-   <span class="text-lg">Sort By</span>
+<button onclick="openDrawer('Sort By', '<?php echo esc_url( home_url('/wp-content/themes/junior-salon/products/sort-drawer.php') ); ?>')" 
+        class="flex items-center bg-transparent group m-0">
+    <span class="text-lg">Sort By</span>
 </button>
 
-<!-- Filter Button -->
-<button onclick="openDrawer('Filter By', '<?php echo esc_url( get_template_directory_uri() . '/products/filter-drawer.php' ); ?>')" class="flex items-center bg-transparent group m-0"> 
-   <span class="text-lg">Filter</span>
-</button>
+<!-- Drawer Container -->
+<div id="drawer" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden">
+    <div class="absolute top-0 right-0 bg-white w-3/4 md:w-1/2 h-full p-6 transform transition-transform duration-300 ease-in-out translate-x-full" id="drawer-panel">
+        <!-- Close Button -->
+        <button id="close-drawer" class="absolute top-4 right-4 text-xl text-gray-500 hover:text-gray-700">&times;</button>
+        
+        <!-- Dynamic Content -->
+        <div id="drawer-content">
+            <!-- Loaded via JS -->
+        </div>
+    </div>
+</div>
 
+<!-- JavaScript -->
+<script>
+function openDrawer(title, url) {
+    const drawer = document.getElementById('drawer');
+    const drawerPanel = document.getElementById('drawer-panel');
+    const drawerContent = document.getElementById('drawer-content');
 
+    // Show overlay and drawer
+    drawer.classList.remove('hidden');
+    setTimeout(() => drawerPanel.classList.remove('translate-x-full'), 10);
 
+    // Load content
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            drawerContent.innerHTML = html;
+        })
+        .catch(err => {
+            drawerContent.innerHTML = '<p class="text-red-500">Failed to load content.</p>';
+        });
+}
+
+// Close drawer handler
+document.getElementById('close-drawer').addEventListener('click', closeDrawer);
+document.getElementById('drawer').addEventListener('click', function(e) {
+    if (e.target === this) closeDrawer();
+});
+
+function closeDrawer() {
+    const drawer = document.getElementById('drawer');
+    const drawerPanel = document.getElementById('drawer-panel');
+
+    drawerPanel.classList.add('translate-x-full');
+    setTimeout(() => drawer.classList.add('hidden'), 300); // Match transition duration
+}
+</script>
 
 
 <h2 class="text-3xl font-bold mb-6">NEW FOR KIDS</h2>

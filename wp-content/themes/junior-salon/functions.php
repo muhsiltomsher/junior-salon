@@ -383,11 +383,9 @@ function load_more_products_callback() {
                     <?php endif; ?>
                 </a>
 
-       <?php     $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
-
-if (!empty($brands) && !is_wp_error($brands)) {
-    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
-} ?>
+                <?php if ($brand = get_field('brand')) : ?>
+                    <div class="text-sm text-gray-500 mb-1"><?php echo esc_html($brand); ?></div>
+                <?php endif; ?>
 
                 <h2 class="text-md font-semibold mb-2">
                     <a href="<?php the_permalink(); ?>" class="hover:underline">

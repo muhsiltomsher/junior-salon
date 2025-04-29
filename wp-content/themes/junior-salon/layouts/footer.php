@@ -57,7 +57,7 @@
 
     <!-- Newsletter + Image -->
     <div class="flex-1 min-w-[300px]">
-      <img src="http://junior-salon.tomsher.net/wp-content/uploads/2025/04/c2ed4663d503957fd55962841ea382a0351506cf.png" alt="Kidswear promo" class="rounded-xl w-full mb-6" />
+      <img src="https://tomsher.co/junior-salon/wp-content/uploads/2025/04/c2ed4663d503957fd55962841ea382a0351506cf.png" alt="Kidswear promo" class="rounded-xl w-full mb-6" />
       <h3 class="text-lg font-semibold mb-1">KEEP ME UPDATED</h3>
       <p class="text-sm text-gray-300 mb-4">Subscribe to get notified about product launches, special offers and company news.</p>
       <form class="flex">
