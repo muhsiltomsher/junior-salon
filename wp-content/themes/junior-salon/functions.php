@@ -1,28 +1,5 @@
 <?php
 
-// Load Scripts
-function mytheme_enqueue_scripts() {
-    // Enqueue jQuery (optional if your theme already loads it)
-    wp_enqueue_script('jquery');
-
-    // Enqueue your pdt-loadmore.js
-    wp_enqueue_script(
-        'pdt-loadmore', 
-        get_template_directory_uri() . '/assets/js/pdt-loadmore.js', 
-        array('jquery'), 
-        null, 
-        true // Load in footer
-    );
-
-    // Localize script to pass ajaxurl and security nonce
-    wp_localize_script('pdt-loadmore', 'loadmore_params', array(
-        'ajaxurl' => admin_url('admin-ajax.php')
-    ));
-}
-add_action('wp_enqueue_scripts', 'mytheme_enqueue_scripts');
-
-
-
 // Enqueue Tailwind CSS and other styles
 function junior_salon_enqueue_styles() {
     wp_enqueue_style('tailwindcss', get_template_directory_uri() . '/dist/styles.css', [], null);
@@ -288,6 +265,10 @@ function load_tab_products() {
   echo load_products_by_category($cat);
   wp_die();
 }
+
+
+
+
 add_action('wp_ajax_load_tab_products', 'load_tab_products');
 add_action('wp_ajax_nopriv_load_tab_products', 'load_tab_products');
 
@@ -357,12 +338,8 @@ function product_page_template_dropdown($templates) {
 add_filter('theme_page_templates', 'product_page_template_dropdown');
 
 
-// Handle load more products
-add_action('wp_ajax_load_more_products', 'load_more_products_callback');
-add_action('wp_ajax_nopriv_load_more_products', 'load_more_products_callback');
-
-function load_more_products_callback() {
-    $paged = isset($_GET['page']) ? intval($_GET['page']) : 1;
+function load_more_products_ajax_handler() {
+    $paged = isset($_POST['page']) ? intval($_POST['page']) : 1;
 
     $args = array(
         'post_type' => 'product',
@@ -373,7 +350,9 @@ function load_more_products_callback() {
     $loop = new WP_Query($args);
 
     if ($loop->have_posts()) :
-        while ($loop->have_posts()) : $loop->the_post(); global $product; ?>
+        ob_start();
+        while ($loop->have_posts()) : $loop->the_post(); global $product;
+            ?>
             <div class="bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
                 <a href="<?php the_permalink(); ?>">
                     <?php if (has_post_thumbnail()) : ?>
@@ -383,23 +362,132 @@ function load_more_products_callback() {
                     <?php endif; ?>
                 </a>
 
-                <?php if ($brand = get_field('brand')) : ?>
-                    <div class="text-sm text-gray-500 mb-1"><?php echo esc_html($brand); ?></div>
-                <?php endif; ?>
+                <?php
+                $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+                if (!empty($brands) && !is_wp_error($brands)) {
+                    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
+                }
+                ?>
 
                 <h2 class="text-md font-semibold mb-2">
-                    <a href="<?php the_permalink(); ?>" class="hover:underline">
-                        <?php the_title(); ?>
-                    </a>
+                    <a href="<?php the_permalink(); ?>" class="hover:underline"><?php the_title(); ?></a>
                 </h2>
 
                 <div class="mt-auto text-lg font-bold text-gray-800">
                     <?php echo $product->get_price_html(); ?>
                 </div>
             </div>
-        <?php endwhile;
+            <?php
+        endwhile;
+        wp_reset_postdata();
+        echo ob_get_clean();
+    else :
+        echo '';
+    endif;
+
+    wp_die();
+}
+add_action('wp_ajax_load_more_products', 'load_more_products_ajax_handler');
+add_action('wp_ajax_nopriv_load_more_products', 'load_more_products_ajax_handler');
+
+
+add_action('wp_ajax_fetch_sorted_products', 'fetch_sorted_products');
+add_action('wp_ajax_nopriv_fetch_sorted_products', 'fetch_sorted_products');
+
+function fetch_sorted_products() {
+    $sort = isset($_GET['sort']) ? sanitize_text_field($_GET['sort']) : '';
+    $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+
+    // Define the number of products per page
+    $posts_per_page = 15;
+
+    // WP_Query arguments
+    $args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => $posts_per_page,
+        'paged'          => $page,
+    );
+
+    // Sorting logic based on selected option
+    switch ($sort) {
+        case 'popular':
+        case 'best-selling':
+            $args['meta_key'] = 'total_sales';
+            $args['orderby']  = 'meta_value_num';
+            $args['order']    = 'DESC';
+            break;
+        case 'a-z':
+            $args['orderby'] = 'title';
+            $args['order']   = 'ASC';
+            break;
+        case 'z-a':
+            $args['orderby'] = 'title';
+            $args['order']   = 'DESC';
+            break;
+        case 'low-high':
+            $args['meta_key'] = '_price';
+            $args['orderby']  = 'meta_value_num';
+            $args['order']    = 'ASC';
+            break;
+        case 'high-low':
+            $args['meta_key'] = '_price';
+            $args['orderby']  = 'meta_value_num';
+            $args['order']    = 'DESC';
+            break;
+        case 'old-new':
+            $args['orderby'] = 'date';
+            $args['order']   = 'ASC';
+            break;
+        case 'new-old':
+            $args['orderby'] = 'date';
+            $args['order']   = 'DESC';
+            break;
+    }
+
+    // Run the query
+    $loop = new WP_Query($args);
+
+    ob_start();
+
+    if ($loop->have_posts()) :
+        while ($loop->have_posts()) : $loop->the_post();
+            global $product;
+            ?>
+            <div class="bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
+                <a href="<?php the_permalink(); ?>">
+                    <?php if (has_post_thumbnail()) {
+                        the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-4']);
+                    } else {
+                        echo '<img src="https://via.placeholder.com/300x300" class="w-full h-48 object-cover mb-4">';
+                    } ?>
+                </a>
+
+                <?php
+                $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+                if (!empty($brands) && !is_wp_error($brands)) {
+                    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
+                }
+                ?>
+
+                <h2 class="text-md font-semibold mb-2">
+                    <a href="<?php the_permalink(); ?>" class="hover:underline"><?php the_title(); ?></a>
+                </h2>
+
+                <div class="mt-auto text-lg font-bold text-gray-800">
+                    <?php echo $product->get_price_html(); ?>
+                </div>
+            </div>
+            <?php
+        endwhile;
+    else :
+        echo '';
     endif;
 
     wp_reset_postdata();
-    die();
+
+    echo ob_get_clean();
+    wp_die(); // End AJAX request properly
 }
+
+
+
