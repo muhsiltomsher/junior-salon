@@ -58,10 +58,11 @@ function closeDrawer() {
 <h2 class="text-3xl font-bold mb-6">NEW FOR KIDS</h2>
 
 <?php
-// Query for WooCommerce products
+// Initial query for WooCommerce products with pagination
 $args = array(
     'post_type' => 'product',
     'posts_per_page' => 15, // Show 15 products initially
+    'paged' => 1, // Start with page 1
 );
 
 $loop = new WP_Query($args);
@@ -80,15 +81,13 @@ if ($loop->have_posts()) :
                     <?php endif; ?>
                 </a>
 
-         <?php      $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
-
-if (!empty($brands) && !is_wp_error($brands)) {
-    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
-}
-        ?>            
-                    
-                    
-               
+                <!-- Product Brand -->
+                <?php
+                $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+                if (!empty($brands) && !is_wp_error($brands)) {
+                    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
+                }
+                ?>
 
                 <!-- Product Name -->
                 <h2 class="text-md font-semibold mb-2">
@@ -107,7 +106,7 @@ if (!empty($brands) && !is_wp_error($brands)) {
 
     <!-- Load More Button -->
     <div class="flex justify-center mt-8">
-        <button id="load-more" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+        <button id="load-more" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" data-page="1">
             Load More
         </button>
     </div>
@@ -119,3 +118,68 @@ endif;
 
 wp_reset_postdata();
 ?>
+
+
+
+
+<script>
+jQuery(document).ready(function($) {
+    let page = 1; // Start from page 1 for loading products
+    let currentSort = ''; // Default empty sorting option
+
+    // Event listener for sorting
+    $('#drawer').on('change', 'input[name="sort"]', function() {
+        currentSort = $(this).val(); // Get the selected sort value
+        page = 1; // Reset page number on sort change
+
+        // Alert the selected sort option (for debugging purposes)
+        alert('Selected sort option: ' + currentSort);
+
+        // Fetch sorted products
+        fetchSortedProducts(currentSort, page);
+
+        // Close the drawer after selection (optional)
+        closeDrawer();
+    });
+
+    // Load more functionality
+    $('#load-more').on('click', function() {
+        page++; // Increment the page number
+        fetchSortedProducts(currentSort, page); // Fetch products for the next page
+    });
+
+    // Function to fetch sorted products
+    function fetchSortedProducts(sort, page) {
+        const ajaxUrl = '<?php echo admin_url("admin-ajax.php"); ?>';
+
+        // Make the AJAX request
+        $.ajax({
+            url: ajaxUrl,
+            method: 'GET',
+            data: {
+                action: 'fetch_sorted_products',
+                sort: sort,
+                page: page
+            },
+            success: function(response) {
+                // If page is 1, replace the content, else append the new products
+                if (page === 1) {
+                    $('#product-grid').html(response); // Replace products if it's the first page
+                } else {
+                    $('#product-grid').append(response); // Append products for subsequent pages
+                }
+
+  // Check if there are more pages to load
+  if (page >= data.max_pages) {
+                // Hide the "Load More" button if all products have been loaded
+                $('#load-more').hide();
+            }
+
+            },
+            error: function(err) {
+                console.error('Error fetching products:', err);
+            }
+        });
+    }
+});
+</script>
