@@ -133,7 +133,7 @@ jQuery(document).ready(function($) {
         page = 1; // Reset page number on sort change
 
         // Alert the selected sort option (for debugging purposes)
-        alert('Selected sort option: ' + currentSort);
+      //  alert('Selected sort option: ' + currentSort);
 
         // Fetch sorted products
         fetchSortedProducts(currentSort, page);
