@@ -59,6 +59,41 @@ if ( post_password_required() ) {
 		 */
 		do_action( 'woocommerce_single_product_summary' );
 		?>
+
+
+
+<?php
+  // Define sections
+  $sections = [
+    'Description' => 'short_description',
+    'Features' => 'features',
+    'Material' => 'material',
+    'Care Instruction' => 'care_instruction',
+    'Delivery Information' => 'shippinginfo',
+    'Return Policy' => 'return_policy'
+  ];
+
+  // Loop through each section
+  foreach ($sections as $section => $acf_field) :
+    // Get the ACF field value or the short description if it's the Description section
+    if ($acf_field === 'short_description') {
+      $content = get_the_excerpt();  // Short Description
+    } else {
+      $content = get_field($acf_field); // ACF Field
+    }
+    
+    // Only display section if there's content
+    if ($content) :
+  ?>
+      <details class="border border-gray-300 rounded-lg p-4">
+        <summary class="font-medium cursor-pointer"><?= esc_html($section) ?></summary>
+        <p class="mt-2 text-sm text-gray-600"><?= esc_html($content) ?></p>
+      </details>
+  <?php 
+    endif;
+  endforeach;
+  ?>
+
 	</div>
 
 	<?php
@@ -71,6 +106,11 @@ if ( post_password_required() ) {
 	 */
 	do_action( 'woocommerce_after_single_product_summary' );
 	?>
+
+
+
+
+
 </div>
 
 <?php do_action( 'woocommerce_after_single_product' ); ?>

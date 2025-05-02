@@ -61,7 +61,7 @@ include get_template_directory() . '/layouts/header.php'; ?>
 		 */
 		//do_action( 'woocommerce_sidebar' );
 	?>
-
+</div>
 <?php
 //get_footer( 'shop' ); ?>
 
@@ -69,4 +69,7 @@ include get_template_directory() . '/layouts/header.php'; ?>
 </div>
 </main>
 
-<?php include get_template_directory() . '/layouts/footer.php'; ?>
+<?php 
+get_template_part( 'components/products-popular-picks' );
+
+include get_template_directory() . '/layouts/footer.php'; ?>

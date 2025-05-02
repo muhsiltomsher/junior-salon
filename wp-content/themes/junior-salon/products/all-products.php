@@ -96,6 +96,10 @@ function closeDrawer() {
     setTimeout(() => drawer.classList.add('hidden'), 300); // Match transition duration
 }
 </script>
+<?php  
+
+//echo do_shortcode('[yith_wcan_filters slug="draft-preset"]'); ?>
+
 
 <h2 class="text-3xl font-bold mb-6">NEW FOR KIDS</h2>
 
