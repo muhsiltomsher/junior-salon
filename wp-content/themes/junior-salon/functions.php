@@ -272,65 +272,110 @@ function load_tab_products() {
 add_action('wp_ajax_load_tab_products', 'load_tab_products');
 add_action('wp_ajax_nopriv_load_tab_products', 'load_tab_products');
 
+
+
+
 function load_products_by_category($cat) {
-  $args = [
-    'post_type' => 'product',
-    'posts_per_page' => 5,
-  ];
-
-  if ($cat === 'sale') {
-    $args['meta_query'] = [
-      [
-        'key' => '_sale_price',
-        'value' => 0,
-        'compare' => '>',
-        'type' => 'NUMERIC'
-      ]
+    $args = [
+      'post_type' => 'product',
+      'posts_per_page' => 5,
     ];
-  } else {
-    $args['tax_query'] = [
-      [
-        'taxonomy' => 'product_cat',
-        'field' => 'slug',
-        'terms' => $cat,
-      ]
-    ];
-  }
+  
+    if ($cat === 'sale') {
+      $args['meta_query'] = [
+        [
+          'key' => '_sale_price',
+          'value' => 0,
+          'compare' => '>',
+          'type' => 'NUMERIC'
+        ]
+      ];
+    } else {
+      $args['tax_query'] = [
+        [
+          'taxonomy' => 'product_cat',
+          'field' => 'slug',
+          'terms' => $cat,
+        ]
+      ];
+    }
+  
+    $query = new WP_Query($args);
+  
+    ob_start();
+    if ($query->have_posts()) :
+      while ($query->have_posts()) : $query->the_post();
+        global $product;
+        ?>
+        <div class="bg-white shadow rounded-lg overflow-hidden text-center p-4">
+          <a href="<?php the_permalink(); ?>">
+            <?php //the_post_thumbnail('medium', ['class' => 'w-full object-cover']); ?>
+          </a>
 
-  $query = new WP_Query($args);
+          <?php
+$attachment_ids = $product->get_gallery_image_ids();
+$hover_image_id = $attachment_ids[0] ?? null;
+?>
+<div class="relative group w-full aspect-square overflow-hidden">
+  <img 
+    src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" 
+    class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0" 
+    alt="<?php the_title_attribute(); ?>" 
+  />
+  <?php if ($hover_image_id): ?>
+    <img 
+      src="<?php echo wp_get_attachment_image_url($hover_image_id, 'medium'); ?>" 
+      class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" 
+      alt="<?php the_title_attribute(); ?>" 
+    />
+  <?php endif; ?>
+</div>
 
-  ob_start();
-  if ($query->have_posts()) :
-    while ($query->have_posts()) : $query->the_post();
-      global $product;
-      ?>
-      <div class="bg-white shadow rounded-lg overflow-hidden text-center">
-        <a href="<?php the_permalink(); ?>">
-          <?php the_post_thumbnail('medium', ['class' => 'w-full  object-cover']); ?>
-          <div class="p-4">
-        <?php
-	
-	$brands = wp_get_post_terms(get_the_ID(), 'product_brand');
 
-	if (!is_wp_error($brands) && !empty($brands)) :
-    echo '<h3 class="text-sm font-medium mb-1 text-gray-500">' . esc_html($brands[0]->name) . '</h3>';
-endif; ?>
+         <?php echo do_shortcode('[yith_wcwl_add_to_wishlist]'); ?>
+
+          <div class="mt-4">
+            <?php
+            $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+            if (!is_wp_error($brands) && !empty($brands)) :
+                echo '<h3 class="text-sm font-medium mb-1 text-gray-500">' . esc_html($brands[0]->name) . '</h3>';
+            endif;
+            ?>
             <h2 class="text-lg font-semibold mb-1"><?php the_title(); ?></h2>
-            <p class="text-gray-700 text-md"><?php echo $product->get_price_html(); ?></p>
+            <p class="text-gray-700 text-md mb-2"><?php echo $product->get_price_html(); ?></p>
+  
+            <?php
+            if ($product->is_type('simple')) {
+                echo '<div class="woocommerce">';
+                woocommerce_simple_add_to_cart();
+                echo '</div>';
+            } elseif ($product->is_type('variable')) {
+               echo '<div class="woocommerce">';
+            woocommerce_variable_add_to_cart();
+              echo '</div>';
+
+       
+            }
+            ?>
           </div>
-        </a>
-      </div>
-      <?php
-    endwhile;
-  else :
-    echo '<p class="col-span-5 text-center text-gray-500">No products found.</p>';
-  endif;
-
-  wp_reset_postdata();
-  return ob_get_clean();
-}
-
-
+        </div>
+        <?php
+      endwhile;
+    else :
+      echo '<p class="col-span-5 text-center text-gray-500">No products found.</p>';
+    endif;
+  
+    wp_reset_postdata();
+    return ob_get_clean();
+  }
+  
+ 
+  add_action('wp_enqueue_scripts', function () {
+    if (is_page() || is_singular()) {
+      wp_enqueue_script('wc-add-to-cart-variation');
+    }
+  });
+  
 function product_page_template_dropdown($templates) {
     $templates['page-products.php'] = 'Products Page Template';
     return $templates;
@@ -455,12 +500,37 @@ function fetch_sorted_products() {
             ?>
             <div class="bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
                 <a href="<?php the_permalink(); ?>">
-                    <?php if (has_post_thumbnail()) {
+                    <?php /*if (has_post_thumbnail()) {
                         the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-4']);
                     } else {
                         echo '<img src="https://via.placeholder.com/300x300" class="w-full h-48 object-cover mb-4">';
-                    } ?>
+                    } */?>
                 </a>
+
+
+                <?php
+$attachment_ids = $product->get_gallery_image_ids();
+$hover_image_id = $attachment_ids[0] ?? null;
+?>
+<div class="relative group w-full aspect-square overflow-hidden">
+  <img 
+    src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" 
+    class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0" 
+    alt="<?php the_title_attribute(); ?>" 
+  />
+  <?php if ($hover_image_id): ?>
+    <img 
+      src="<?php echo wp_get_attachment_image_url($hover_image_id, 'medium'); ?>" 
+      class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" 
+      alt="<?php the_title_attribute(); ?>" 
+    />
+  <?php endif; ?>
+</div>
+
+
+<?php echo do_shortcode('[yith_wcwl_add_to_wishlist]'); ?>
+
+
 
                 <?php
                 $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
@@ -476,6 +546,23 @@ function fetch_sorted_products() {
                 <div class="mt-auto text-lg font-bold text-gray-800">
                     <?php echo $product->get_price_html(); ?>
                 </div>
+
+
+                <?php
+            if ($product->is_type('simple')) {
+                echo '<div class="woocommerce">';
+                woocommerce_simple_add_to_cart();
+                echo '</div>';
+            } elseif ($product->is_type('variable')) {
+               echo '<div class="woocommerce">';
+            woocommerce_variable_add_to_cart();
+              echo '</div>';
+
+       
+            }
+            ?>
+            </div>
+
             </div>
             <?php
         endwhile;
@@ -717,13 +804,31 @@ function filter_products_callback() {
             ?>
             <div class="product-card bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
                 <a href="<?php the_permalink(); ?>">
-                    <?php if (has_post_thumbnail()) : ?>
+                    <?php /* if (has_post_thumbnail()) : ?>
                         <?php the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-4']); ?>
                     <?php else : ?>
                         <img src="https://via.placeholder.com/300x300" alt="<?php the_title(); ?>" class="w-full h-48 object-cover mb-4">
-                    <?php endif; ?>
+                    <?php endif; */?>
                 </a>
 
+                <?php
+$attachment_ids = $product->get_gallery_image_ids();
+$hover_image_id = $attachment_ids[0] ?? null;
+?>
+<div class="relative group w-full aspect-square overflow-hidden">
+  <img 
+    src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" 
+    class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0" 
+    alt="<?php the_title_attribute(); ?>" 
+  />
+  <?php if ($hover_image_id): ?>
+    <img 
+      src="<?php echo wp_get_attachment_image_url($hover_image_id, 'medium'); ?>" 
+      class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" 
+      alt="<?php the_title_attribute(); ?>" 
+    />
+  <?php endif; ?>
+</div><?php echo do_shortcode('[yith_wcwl_add_to_wishlist]'); ?>
                 <?php
                 $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
                 if (!empty($brands) && !is_wp_error($brands)) {
@@ -738,6 +843,21 @@ function filter_products_callback() {
                 <div class="mt-auto text-lg font-bold text-gray-800">
                     <?php echo $product->get_price_html(); ?>
                 </div>
+
+                <?php
+            if ($product->is_type('simple')) {
+                echo '<div class="woocommerce">';
+                woocommerce_simple_add_to_cart();
+                echo '</div>';
+            } elseif ($product->is_type('variable')) {
+               echo '<div class="woocommerce">';
+            woocommerce_variable_add_to_cart();
+              echo '</div>';
+
+       
+            }
+            ?>
+
             </div>
             <?php
         endwhile;
