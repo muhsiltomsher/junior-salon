@@ -104,6 +104,8 @@ function closeDrawer() {
 <h2 class="text-3xl font-bold mb-6">NEW FOR KIDS</h2>
 
 <?php
+
+
 // Initial query for WooCommerce products with pagination
 $paged = 1; // Set current page
 $args = array(
