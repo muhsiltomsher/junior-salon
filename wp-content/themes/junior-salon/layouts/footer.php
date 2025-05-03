@@ -104,11 +104,12 @@ echo '</div>';
 
     <!-- Payment Cards -->
     <div class="flex items-center gap-2">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" class="h-6" alt="Visa">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-6" alt="Mastercard">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_Pay_Logo.svg" class="h-6" alt="GPay">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="h-6" alt="Apple Pay">
-    </div>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" class="h-6  w-auto"   style="height:24px; width:auto;" alt="Visa">
+   <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-6  w-auto"  style="height:24px; width:auto;" alt="Mastercard">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_Pay_Logo.svg" class="h-6  w-auto"  style="height:24px; width:auto;" alt="GPay">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="h-6  w-auto"  style="height:24px; width:auto;" alt="Apple Pay">
+
+ </div>
   </div>
 
   <!-- Bottom -->

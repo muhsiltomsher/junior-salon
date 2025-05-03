@@ -1,28 +1,5 @@
 <?php
 
-// Load Scripts
-function mytheme_enqueue_scripts() {
-    // Enqueue jQuery (optional if your theme already loads it)
-    wp_enqueue_script('jquery');
-
-    // Enqueue your pdt-loadmore.js
-    wp_enqueue_script(
-        'pdt-loadmore', 
-        get_template_directory_uri() . '/assets/js/pdt-loadmore.js', 
-        array('jquery'), 
-        null, 
-        true // Load in footer
-    );
-
-    // Localize script to pass ajaxurl and security nonce
-    wp_localize_script('pdt-loadmore', 'loadmore_params', array(
-        'ajaxurl' => admin_url('admin-ajax.php')
-    ));
-}
-add_action('wp_enqueue_scripts', 'mytheme_enqueue_scripts');
-
-
-
 // Enqueue Tailwind CSS and other styles
 function junior_salon_enqueue_styles() {
     wp_enqueue_style('tailwindcss', get_template_directory_uri() . '/dist/styles.css', [], null);
@@ -288,6 +265,10 @@ function load_tab_products() {
   echo load_products_by_category($cat);
   wp_die();
 }
+
+
+
+
 add_action('wp_ajax_load_tab_products', 'load_tab_products');
 add_action('wp_ajax_nopriv_load_tab_products', 'load_tab_products');
 
@@ -357,12 +338,8 @@ function product_page_template_dropdown($templates) {
 add_filter('theme_page_templates', 'product_page_template_dropdown');
 
 
-// Handle load more products
-add_action('wp_ajax_load_more_products', 'load_more_products_callback');
-add_action('wp_ajax_nopriv_load_more_products', 'load_more_products_callback');
-
-function load_more_products_callback() {
-    $paged = isset($_GET['page']) ? intval($_GET['page']) : 1;
+function load_more_products_ajax_handler() {
+    $paged = isset($_POST['page']) ? intval($_POST['page']) : 1;
 
     $args = array(
         'post_type' => 'product',
@@ -373,7 +350,9 @@ function load_more_products_callback() {
     $loop = new WP_Query($args);
 
     if ($loop->have_posts()) :
-        while ($loop->have_posts()) : $loop->the_post(); global $product; ?>
+        ob_start();
+        while ($loop->have_posts()) : $loop->the_post(); global $product;
+            ?>
             <div class="bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
                 <a href="<?php the_permalink(); ?>">
                     <?php if (has_post_thumbnail()) : ?>
@@ -383,23 +362,459 @@ function load_more_products_callback() {
                     <?php endif; ?>
                 </a>
 
-                <?php if ($brand = get_field('brand')) : ?>
-                    <div class="text-sm text-gray-500 mb-1"><?php echo esc_html($brand); ?></div>
-                <?php endif; ?>
+                <?php
+                $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+                if (!empty($brands) && !is_wp_error($brands)) {
+                    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
+                }
+                ?>
 
                 <h2 class="text-md font-semibold mb-2">
-                    <a href="<?php the_permalink(); ?>" class="hover:underline">
-                        <?php the_title(); ?>
-                    </a>
+                    <a href="<?php the_permalink(); ?>" class="hover:underline"><?php the_title(); ?></a>
                 </h2>
 
                 <div class="mt-auto text-lg font-bold text-gray-800">
                     <?php echo $product->get_price_html(); ?>
                 </div>
             </div>
-        <?php endwhile;
+            <?php
+        endwhile;
+        wp_reset_postdata();
+        echo ob_get_clean();
+    else :
+        echo '';
+    endif;
+
+    wp_die();
+}
+add_action('wp_ajax_load_more_products', 'load_more_products_ajax_handler');
+add_action('wp_ajax_nopriv_load_more_products', 'load_more_products_ajax_handler');
+
+
+add_action('wp_ajax_fetch_sorted_products', 'fetch_sorted_products');
+add_action('wp_ajax_nopriv_fetch_sorted_products', 'fetch_sorted_products');
+
+function fetch_sorted_products() {
+    $sort = isset($_GET['sort']) ? sanitize_text_field($_GET['sort']) : '';
+    $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+
+    // Define the number of products per page
+    $posts_per_page = 15;
+
+    // WP_Query arguments
+    $args = array(
+        'post_type'      => 'product',
+        'posts_per_page' => $posts_per_page,
+        'paged'          => $page,
+    );
+
+    // Sorting logic based on selected option
+    switch ($sort) {
+        case 'popular':
+        case 'best-selling':
+            $args['meta_key'] = 'total_sales';
+            $args['orderby']  = 'meta_value_num';
+            $args['order']    = 'DESC';
+            break;
+        case 'a-z':
+            $args['orderby'] = 'title';
+            $args['order']   = 'ASC';
+            break;
+        case 'z-a':
+            $args['orderby'] = 'title';
+            $args['order']   = 'DESC';
+            break;
+        case 'low-high':
+            $args['meta_key'] = '_price';
+            $args['orderby']  = 'meta_value_num';
+            $args['order']    = 'ASC';
+            break;
+        case 'high-low':
+            $args['meta_key'] = '_price';
+            $args['orderby']  = 'meta_value_num';
+            $args['order']    = 'DESC';
+            break;
+        case 'old-new':
+            $args['orderby'] = 'date';
+            $args['order']   = 'ASC';
+            break;
+        case 'new-old':
+            $args['orderby'] = 'date';
+            $args['order']   = 'DESC';
+            break;
+    }
+
+    // Run the query
+    $loop = new WP_Query($args);
+
+    ob_start();
+
+    if ($loop->have_posts()) :
+        while ($loop->have_posts()) : $loop->the_post();
+            global $product;
+            ?>
+            <div class="bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
+                <a href="<?php the_permalink(); ?>">
+                    <?php if (has_post_thumbnail()) {
+                        the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-4']);
+                    } else {
+                        echo '<img src="https://via.placeholder.com/300x300" class="w-full h-48 object-cover mb-4">';
+                    } ?>
+                </a>
+
+                <?php
+                $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+                if (!empty($brands) && !is_wp_error($brands)) {
+                    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
+                }
+                ?>
+
+                <h2 class="text-md font-semibold mb-2">
+                    <a href="<?php the_permalink(); ?>" class="hover:underline"><?php the_title(); ?></a>
+                </h2>
+
+                <div class="mt-auto text-lg font-bold text-gray-800">
+                    <?php echo $product->get_price_html(); ?>
+                </div>
+            </div>
+            <?php
+        endwhile;
+    else :
+        echo '';
     endif;
 
     wp_reset_postdata();
-    die();
+
+    echo ob_get_clean();
+    wp_die(); // End AJAX request properly
 }
+
+
+
+add_filter( 'template_include', 'load_custom_product_template', 99 );
+function load_custom_product_template( $template ) {
+    if ( is_singular('product') ) {
+        $custom = locate_template( 'woocommerce/single-product.php' );
+        if ( $custom ) {
+            return $custom;
+        }
+    }
+    return $template;
+}
+
+
+remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
+
+
+//add_action( 'woocommerce_after_single_product', 'load_custom_popular_picks_template', 15 );
+
+//function load_custom_popular_picks_template() {
+   // get_template_part( 'components/products-popular-picks' );
+//}
+
+
+
+// Shortcode to display product categories as checkboxes
+function product_categories_checkbox_shortcode( $atts ) {
+    // Default attributes for the shortcode
+    $atts = shortcode_atts( array(
+        'include' => '', // Comma-separated category IDs
+    ), $atts, 'product_categories_checkbox' );
+
+    // Convert the 'include' attribute into an array
+    $include_ids = array_map('intval', explode(',', $atts['include']));
+
+    // Function to fetch and display product categories as checkboxes
+    ob_start(); // Start output buffering
+
+    $args = array(
+        'taxonomy'   => 'product_cat',
+        'hide_empty' => false,
+        'include'    => $include_ids, // Only include specified categories by ID
+    );
+
+    // Fetch the categories
+    $product_categories = get_terms( $args );
+
+    if ( ! empty( $product_categories ) && ! is_wp_error( $product_categories ) ) {
+     
+        foreach ( $product_categories as $category ) {
+            $cat_id = esc_attr( $category->term_id );
+            $cat_name = esc_html( $category->name );
+            echo "<label><input type='checkbox' name='product_cat[]' value='{$cat_id}'> {$cat_name}</label><br>";
+        }
+    
+      
+    } else {
+        echo '<p>No categories available.</p>';
+    }
+
+    return ob_get_clean(); // Return the content and stop buffering
+}
+
+// Register the shortcode
+add_shortcode( 'product_categories_checkbox', 'product_categories_checkbox_shortcode' );
+
+
+
+function age_subcategories_checkboxes_shortcode() {
+    // Get the parent category term object
+    $parent = get_term_by('name', 'Age', 'product_cat'); // Or use slug: 'age'
+
+    if ( ! $parent || is_wp_error($parent) ) {
+        return '<p>Parent category not found.</p>';
+    }
+
+    // Fetch child terms
+    $subcategories = get_terms(array(
+        'taxonomy'   => 'product_cat',
+        'parent'     => $parent->term_id,
+        'hide_empty' => false,
+        'orderby'    => 'name',
+        'order'      => 'ASC',
+    ));
+
+    if (empty($subcategories)) {
+        return '<p>No subcategories found.</p>';
+    }
+
+    // Build checkbox list with Tailwind styling
+    $output = '<div class="space-y-2">';
+    foreach ($subcategories as $subcategory) {
+        $output .= '<label class="flex items-center space-x-2 text-gray-700">
+            <input type="checkbox" name="age_product_cat[]" value="' . esc_attr($subcategory->term_id) . '" class="accent-blue-500">
+            <span>' . esc_html($subcategory->name) . '</span>
+        </label>';
+    }
+    $output .= '</div>';
+
+    return $output;
+}
+add_shortcode('age_category_checkboxes', 'age_subcategories_checkboxes_shortcode');
+
+
+
+function woocommerce_brand_checkboxes_shortcode() {
+    $brands = get_terms(array(
+        'taxonomy'   => 'product_brand', // Change this if your brand taxonomy differs
+        'hide_empty' => false,
+        'orderby'    => 'name',
+        'order'      => 'ASC',
+    ));
+
+    if (empty($brands) || is_wp_error($brands)) {
+        return '<p>No brands found.</p>';
+    }
+
+    // Output checkboxes with Tailwind styling
+    $output = '<div class="space-y-2">';
+    foreach ($brands as $brand) {
+        $output .= '<label class="flex items-center space-x-2 text-gray-700">
+            <input type="checkbox" name="product_brand[]" value="' . esc_attr($brand->term_id) . '" class="accent-blue-500">
+            <span>' . esc_html($brand->name) . '</span>
+        </label>';
+    }
+    $output .= '</div>';
+
+    return $output;
+}
+add_shortcode('brand_checkboxes', 'woocommerce_brand_checkboxes_shortcode');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+add_action('wp_ajax_load_filter_drawer_content', 'load_filter_drawer_content');
+add_action('wp_ajax_nopriv_load_filter_drawer_content', 'load_filter_drawer_content');
+
+function load_filter_drawer_content() {
+    // Output filter content
+    get_template_part('products/filter-drawer');
+    wp_die(); // always call wp_die() at the end of AJAX handlers
+}
+add_action('wp_footer', function () {
+    if (!is_admin()) {
+        echo '<script>var ajaxurl = "' . admin_url('admin-ajax.php') . '";</script>';
+    }
+});
+
+add_action('wp_ajax_filter_products', 'filter_products_callback');
+add_action('wp_ajax_nopriv_filter_products', 'filter_products_callback');
+
+function filter_products_callback() {
+
+    // Get filter parameters
+    $categories = isset($_POST['categories']) ? $_POST['categories'] : [];
+    $brands = isset($_POST['brands']) ? $_POST['brands'] : [];
+    $age = isset($_POST['age']) ? $_POST['age'] : [];
+
+    $paged = isset($_POST['page']) ? intval($_POST['page']) : 1;
+
+    // Base query
+    $args = array(
+        'post_type' => 'product',
+        'posts_per_page' => 15,
+        'paged' => $paged,
+    );
+
+    // Tax query array
+    $tax_query = [];
+
+    if (!empty($categories)) {
+        $tax_query[] = array(
+            'taxonomy' => 'product_cat',
+            'field'    => 'id',
+            'terms'    => $categories,
+            'operator' => 'IN',
+        );
+    }
+
+    if (!empty($brands)) {
+        $tax_query[] = array(
+            'taxonomy' => 'product_brand',
+            'field'    => 'id',
+            'terms'    => $brands,
+            'operator' => 'IN',
+        );
+    }
+
+    if (!empty($age)) {
+        $tax_query[] = array(
+            'taxonomy' => 'product_cat', // Replace if you have a specific age taxonomy
+            'field'    => 'id',
+            'terms'    => $age,
+            'operator' => 'IN',
+        );
+    }
+
+    if (!empty($tax_query)) {
+        $args['tax_query'] = $tax_query;
+    }
+
+    $query = new WP_Query($args);
+
+    ob_start();
+
+    if ($query->have_posts()) :
+        while ($query->have_posts()) : $query->the_post();
+            global $product;
+            ?>
+            <div class="product-card bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
+                <a href="<?php the_permalink(); ?>">
+                    <?php if (has_post_thumbnail()) : ?>
+                        <?php the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-4']); ?>
+                    <?php else : ?>
+                        <img src="https://via.placeholder.com/300x300" alt="<?php the_title(); ?>" class="w-full h-48 object-cover mb-4">
+                    <?php endif; ?>
+                </a>
+
+                <?php
+                $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+                if (!empty($brands) && !is_wp_error($brands)) {
+                    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
+                }
+                ?>
+
+                <h2 class="text-md font-semibold mb-2">
+                    <a href="<?php the_permalink(); ?>" class="hover:underline"><?php the_title(); ?></a>
+                </h2>
+
+                <div class="mt-auto text-lg font-bold text-gray-800">
+                    <?php echo $product->get_price_html(); ?>
+                </div>
+            </div>
+            <?php
+        endwhile;
+
+        // Add Load More button if more pages exist
+        if ($query->max_num_pages > $paged) {
+            ?>
+            <div class="text-center mt-6">
+                <button 
+                    class="load-more-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    data-next-page="<?php echo esc_attr($paged + 1); ?>">
+                    Load More
+                </button>
+            </div>
+            <?php
+        }
+
+    endif;
+
+    wp_reset_postdata();
+
+    echo ob_get_clean();
+    wp_die();
+}
+
+
+
+add_filter( 'woocommerce_product_tabs', 'remove_additional_information_tab', 98 );
+function remove_additional_information_tab( $tabs ) {
+    unset( $tabs['additional_information'] );
+    return $tabs;
+}
+add_action( 'woocommerce_single_product_summary', 'show_woocommerce_brand_above_title', 4 );
+function show_woocommerce_brand_above_title() {
+    $terms = get_the_terms( get_the_ID(), 'product_brand' );
+
+    if ( $terms && ! is_wp_error( $terms ) ) {
+        $brand = $terms[0]; // First assigned brand
+        echo '<div class="product-brand" style="font-weight: bold; margin-bottom: 10px;">';
+        echo '<a href="' . esc_url( get_term_link( $brand ) ) . '">' . esc_html( $brand->name ) . '</a>';
+        echo '</div>';
+    }
+}
+
+add_action( 'woocommerce_single_product_summary', 'add_duties_notice_under_price', 11 );
+function add_duties_notice_under_price() {
+    echo '
+        <div class="mt-2">
+            <p class="text-sm text-gray-600 italic">(Duties and Tax included)</p>
+            <hr class="mt-2 border-t border-gray-300" />
+        </div>
+    ';
+}
+
+remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_excerpt', 20 );
+
+
+remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
+
+add_action('woocommerce_before_add_to_cart_button', 'custom_separator_before_cart', 15);
+function custom_separator_before_cart() {
+    echo '<hr class="my-4 border-t border-gray-300" />';
+}
+
+
+function add_divider_after_buy_now_button() {
+    if (is_product()) {
+        echo '<div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;"></div>';
+    }
+}
+add_action('woocommerce_after_single_product', 'add_divider_after_buy_now_button', 15);
+
+
+
+function mytheme_add_woocommerce_support() {
+    add_theme_support('woocommerce');
+}
+add_action('after_setup_theme', 'mytheme_add_woocommerce_support');
+
+

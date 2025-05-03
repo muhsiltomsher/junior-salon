@@ -84,7 +84,7 @@
                 if (has_custom_logo()) {
                     $custom_logo_id = get_theme_mod('custom_logo');
                     $logo_url = wp_get_attachment_image_url($custom_logo_id, 'full');
-                    echo '<img src="' . esc_url($logo_url) . '" alt="' . get_bloginfo('name') . '" class="h-16 w-auto">';
+                    echo '<img src="' . esc_url($logo_url) . '" alt="' . get_bloginfo('name') . '" class="h-16 w-30">';
                 } else {
                     echo '<h1 class="text-3xl font-bold text-white">' . get_bloginfo('name') . '</h1>';
                 }
