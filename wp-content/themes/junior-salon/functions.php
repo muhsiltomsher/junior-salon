@@ -506,11 +506,11 @@ function load_custom_product_template( $template ) {
 remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20 );
 
 
-add_action( 'woocommerce_after_single_product', 'load_custom_popular_picks_template', 15 );
+//add_action( 'woocommerce_after_single_product', 'load_custom_popular_picks_template', 15 );
 
-function load_custom_popular_picks_template() {
-    get_template_part( 'components/products-popular-picks' );
-}
+//function load_custom_popular_picks_template() {
+   // get_template_part( 'components/products-popular-picks' );
+//}
 
 
 
@@ -762,4 +762,59 @@ function filter_products_callback() {
     echo ob_get_clean();
     wp_die();
 }
+
+
+
+add_filter( 'woocommerce_product_tabs', 'remove_additional_information_tab', 98 );
+function remove_additional_information_tab( $tabs ) {
+    unset( $tabs['additional_information'] );
+    return $tabs;
+}
+add_action( 'woocommerce_single_product_summary', 'show_woocommerce_brand_above_title', 4 );
+function show_woocommerce_brand_above_title() {
+    $terms = get_the_terms( get_the_ID(), 'product_brand' );
+
+    if ( $terms && ! is_wp_error( $terms ) ) {
+        $brand = $terms[0]; // First assigned brand
+        echo '<div class="product-brand" style="font-weight: bold; margin-bottom: 10px;">';
+        echo '<a href="' . esc_url( get_term_link( $brand ) ) . '">' . esc_html( $brand->name ) . '</a>';
+        echo '</div>';
+    }
+}
+
+add_action( 'woocommerce_single_product_summary', 'add_duties_notice_under_price', 11 );
+function add_duties_notice_under_price() {
+    echo '
+        <div class="mt-2">
+            <p class="text-sm text-gray-600 italic">(Duties and Tax included)</p>
+            <hr class="mt-2 border-t border-gray-300" />
+        </div>
+    ';
+}
+
+remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_excerpt', 20 );
+
+
+remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_meta', 40 );
+
+add_action('woocommerce_before_add_to_cart_button', 'custom_separator_before_cart', 15);
+function custom_separator_before_cart() {
+    echo '<hr class="my-4 border-t border-gray-300" />';
+}
+
+
+function add_divider_after_buy_now_button() {
+    if (is_product()) {
+        echo '<div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;"></div>';
+    }
+}
+add_action('woocommerce_after_single_product', 'add_divider_after_buy_now_button', 15);
+
+
+
+function mytheme_add_woocommerce_support() {
+    add_theme_support('woocommerce');
+}
+add_action('after_setup_theme', 'mytheme_add_woocommerce_support');
+
 
