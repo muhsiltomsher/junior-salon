@@ -27,11 +27,46 @@
             ?>
             <div class="product-card bg-white p-4 rounded-lg shadow hover:shadow-lg transition">
                 <a href="<?php the_permalink(); ?>" class="block">
-                    <?php the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-3']); ?>
+
+
+                <?php
+$attachment_ids = $product->get_gallery_image_ids();
+$hover_image_id = $attachment_ids[0] ?? null;
+?>
+<div class="relative group w-full aspect-square overflow-hidden">
+  <img 
+    src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" 
+    class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0" 
+    alt="<?php the_title_attribute(); ?>" 
+  />
+  <?php if ($hover_image_id): ?>
+    <img 
+      src="<?php echo wp_get_attachment_image_url($hover_image_id, 'medium'); ?>" 
+      class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" 
+      alt="<?php the_title_attribute(); ?>" 
+    />
+  <?php endif; ?>
+</div>
+<?php echo do_shortcode('[yith_wcwl_add_to_wishlist]'); ?>
+                    <?php //the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-3']); ?>
                     <p class="text-sm text-gray-500"><?php echo $brand; ?></p>
                     <h3 class="text-base font-semibold text-gray-800"><?php the_title(); ?></h3>
                     <p class="text-lg text-gray-700 mt-1"><?php echo wc_price($product->get_price()); ?></p>
                 </a>
+
+                <?php
+            if ($product->is_type('simple')) {
+                echo '<div class="woocommerce">';
+                woocommerce_simple_add_to_cart();
+                echo '</div>';
+            } elseif ($product->is_type('variable')) {
+               echo '<div class="woocommerce">';
+            woocommerce_variable_add_to_cart();
+              echo '</div>';
+
+       
+            }
+            ?>
             </div>
             <?php
         endwhile;
