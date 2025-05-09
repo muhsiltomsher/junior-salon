@@ -10,6 +10,9 @@
 
     <!-- Search Icon -->
     <a href="#" class="flex items-center group m-0">
+
+    <?php echo do_shortcode('[fibosearch]'); ?>
+
         <div class="h-10 w-10 flex items-center justify-center rounded-full border border-transparent group-hover:border-white transition-all duration-300">
             <img src="https://tomsher.co/junior-salon/wp-content/uploads/2025/04/search.svg" alt="Search" class="h-6 w-6">
         </div>

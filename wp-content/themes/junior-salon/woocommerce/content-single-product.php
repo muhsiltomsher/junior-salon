@@ -60,7 +60,13 @@ if ( post_password_required() ) {
 		do_action( 'woocommerce_single_product_summary' );
 		?>
 
-
+ <!-- Add this below to force variation form -->
+ <?php
+   /* global $product;
+    if ( $product && $product->is_type( 'variable' ) ) {
+        wc_get_template( 'components/add-to-cart-variable.php');
+    } */
+    ?>
 
 <?php
   // Define sections
