@@ -8,6 +8,20 @@
 echo do_shortcode('[product_categories_checkbox include="27, 22, 30,24,23,26,25,28,29"]');
 ?>
 
+
+
+<h2 class="text-lg font-semibold mb-4">COLOR</h2>
+<?php
+
+echo do_shortcode('[attribute_checkboxes attribute="pa_color"]'); ?>
+
+
+
+
+<h2 class="text-lg font-semibold mb-4">SIZE</h2>
+<?php
+echo do_shortcode('[attribute_checkboxes attribute="pa_size"]'); ?>
+
 <h2 class="text-lg font-semibold mb-4">AGE</h2>
 <?php
 echo do_shortcode('[age_category_checkboxes]');
@@ -17,6 +31,13 @@ echo do_shortcode('[age_category_checkboxes]');
 <?php
 echo do_shortcode('[brand_checkboxes]');
 ?>
+
+<h2 class="text-lg font-semibold mb-4">PRICE</h2>
+<?php
+echo do_shortcode('[price_filter]'); ?>
+
+
+
 <button id="filter-button" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
     Apply Filters
 </button>

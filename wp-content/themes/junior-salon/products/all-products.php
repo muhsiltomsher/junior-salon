@@ -163,7 +163,8 @@ jQuery(document).ready(function($) {
     let currentPage = 1;
     let selectedCategories = [], selectedBrands = [], selectedAge = [];
 
-    function loadProducts(page = 1, append = false) {
+function loadProducts(page = 1, append = false, sizes = [], colors = [], minPrice = '', maxPrice = '') {
+alert(sizes);
         $('#ajax-loader').removeClass('hidden');
         $.ajax({
             url: ajaxurl,
@@ -173,6 +174,10 @@ jQuery(document).ready(function($) {
                 categories: selectedCategories,
                 brands: selectedBrands,
                 age: selectedAge,
+                sizes: sizes,
+            colors: colors,
+            min_price: minPrice,
+            max_price: maxPrice,
                 page: page,
             },
             success: function(response) {
@@ -193,16 +198,54 @@ jQuery(document).ready(function($) {
         selectedCategories = $('input[name="product_cat[]"]:checked').map(function() { return $(this).val(); }).get();
         selectedBrands = $('input[name="product_brand[]"]:checked').map(function() { return $(this).val(); }).get();
         selectedAge = $('input[name="age_product_cat[]"]:checked').map(function() { return $(this).val(); }).get();
+      
+        let selectedSizes = $('input[name="pa_size[]"]:checked').map(function() {
+        return $(this).val();
+    }).get();
+
+    let selectedColors = $('input[name="pa_color[]"]:checked').map(function() {
+        return $(this).val();
+    }).get();
+
+    let minPrice = $('input[name="min_price"]').val();
+    let maxPrice = $('input[name="max_price"]').val();
+
+      
         $('#drawer-overlay').trigger('click');
         $('#load-more').hide();
         currentPage = 1;
-        loadProducts(currentPage, false);
+        loadProducts(currentPage, false,selectedSizes, selectedColors, minPrice, maxPrice);
         closeDrawerfilter();
     });
 
     $(document).on('click', '.load-more-btn', function() {
         const nextPage = parseInt($(this).data('next-page'));
-        loadProducts(nextPage, true);
+ // Re-read current filters
+ selectedCategories = $('input[name="product_cat[]"]:checked').map(function() {
+        return $(this).val();
+    }).get();
+
+    selectedBrands = $('input[name="product_brand[]"]:checked').map(function() {
+        return $(this).val();
+    }).get();
+
+    selectedAge = $('input[name="age_product_cat[]"]:checked').map(function() {
+        return $(this).val();
+    }).get();
+
+    let selectedSizes = $('input[name="pa_size[]"]:checked').map(function() {
+        return $(this).val();
+    }).get();
+
+    let selectedColors = $('input[name="pa_color[]"]:checked').map(function() {
+        return $(this).val();
+    }).get();
+
+    let minPrice = $('input[name="min_price"]').val();
+    let maxPrice = $('input[name="max_price"]').val();
+
+    loadProducts(nextPage, true, selectedSizes, selectedColors, minPrice, maxPrice);
+
     });
 });
 </script>
