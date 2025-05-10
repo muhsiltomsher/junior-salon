@@ -1,4 +1,10 @@
 <?php
+// Increase maximum execution time
+set_time_limit(300); // 300 seconds = 5 minutes
+
+// Increase memory limit
+ini_set('memory_limit', '256M'); // Adjust to your needs
+
 
 // Enqueue Tailwind CSS and other styles
 function junior_salon_enqueue_styles() {
@@ -710,9 +716,61 @@ add_shortcode('brand_checkboxes', 'woocommerce_brand_checkboxes_shortcode');
 
 
 
+function woocommerce_attribute_checkboxes_shortcode($atts) {
+    $atts = shortcode_atts([
+        'attribute' => '', // Expected: 'pa_color' or 'pa_size'
+    ], $atts);
+
+    $taxonomy = sanitize_title($atts['attribute']);
+
+    if (empty($taxonomy) || !taxonomy_exists($taxonomy)) {
+        return '<p>Invalid or missing attribute taxonomy.</p>';
+    }
+
+    $terms = get_terms([
+        'taxonomy'   => $taxonomy,
+        'hide_empty' => false,
+        'orderby'    => 'name',
+        'order'      => 'ASC',
+    ]);
+
+    if (empty($terms) || is_wp_error($terms)) {
+        return '<p>No terms found for this attribute.</p>';
+    }
+
+    // Output checkboxes with Tailwind styling
+    $output = '<div class="space-y-2">';
+    foreach ($terms as $term) {
+        $output .= '<label class="flex items-center space-x-2 text-gray-700">
+            <input type="checkbox" name="' . esc_attr($taxonomy) . '[]" value="' . esc_attr($term->term_id) . '" class="accent-blue-500">
+            <span>' . esc_html($term->name) . '</span>
+        </label>';
+    }
+    $output .= '</div>';
+
+    return $output;
+}
+add_shortcode('attribute_checkboxes', 'woocommerce_attribute_checkboxes_shortcode');
 
 
 
+function woocommerce_price_filter_shortcode() {
+    ob_start();
+    ?>
+
+    <div class="space-y-4">
+        <label class="block text-sm font-medium text-gray-700">Price Range</label>
+        <div class="flex items-center space-x-3">
+            <input type="number" name="min_price" id="min_price" placeholder="Min" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            <span>-</span>
+            <input type="number" name="max_price" id="max_price" placeholder="Max" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+        </div>
+    </div>
+
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('price_filter', 'woocommerce_price_filter_shortcode');
 
 
 
@@ -750,7 +808,10 @@ function filter_products_callback() {
     $categories = isset($_POST['categories']) ? $_POST['categories'] : [];
     $brands = isset($_POST['brands']) ? $_POST['brands'] : [];
     $age = isset($_POST['age']) ? $_POST['age'] : [];
-
+    $sizes = isset($_POST['sizes']) ? $_POST['sizes'] : [];
+    $colors = isset($_POST['colors']) ? $_POST['colors'] : [];
+    $min_price = isset($_POST['min_price']) ? floatval($_POST['min_price']) : 0;
+    $max_price = isset($_POST['max_price']) ? floatval($_POST['max_price']) : 0;
     $paged = isset($_POST['page']) ? intval($_POST['page']) : 1;
 
     // Base query
@@ -790,10 +851,53 @@ function filter_products_callback() {
         );
     }
 
+    if (!empty($sizes)) {
+        $tax_query[] = array(
+            'taxonomy' => 'pa_size',
+            'field'    => 'id',
+            'terms'    => 70,
+            'operator' => 'IN',
+        );
+    }
+    
+    if (!empty($colors)) {
+        $tax_query[] = array(
+            'taxonomy' => 'pa_color',
+            'field'    => 'id',
+            'terms'    => $colors,
+            'operator' => 'IN',
+        );
+    }
+    
+    $meta_query = [];
+
+    if ($min_price > 0 || $max_price > 0) {
+        $price_range = ['key' => '_price', 'value' => [], 'compare' => 'BETWEEN', 'type' => 'NUMERIC'];
+    
+        if ($min_price > 0) {
+            $price_range['value'][] = $min_price;
+        } else {
+            $price_range['value'][] = 0;
+        }
+    
+        if ($max_price > 0) {
+            $price_range['value'][] = $max_price;
+        } else {
+            $price_range['value'][] = 999999;
+        }
+    
+        $meta_query[] = $price_range;
+    }
+    
+
+
     if (!empty($tax_query)) {
         $args['tax_query'] = $tax_query;
     }
 
+    if (!empty($meta_query)) {
+        $args['meta_query'] = $meta_query;
+    }
     $query = new WP_Query($args);
 
     ob_start();
@@ -883,7 +987,10 @@ $hover_image_id = $attachment_ids[0] ?? null;
     wp_die();
 }
 
-
+add_filter('posts_request', function($sql) {
+    error_log($sql);
+    return $sql;
+});
 
 add_filter( 'woocommerce_product_tabs', 'remove_additional_information_tab', 98 );
 function remove_additional_information_tab( $tabs ) {
@@ -1239,3 +1346,23 @@ $hover_image_id = $attachment_ids[0] ?? null;
     echo ob_get_clean();
     wp_die();
 }
+
+
+// Save first name, last name, phone number, and validate password confirmation
+add_action('woocommerce_register_post', function ($username, $email, $validation_errors) {
+    if ($_POST['password'] !== $_POST['password2']) {
+        $validation_errors->add('password_mismatch', 'Passwords do not match.');
+    }
+}, 10, 3);
+
+add_action('woocommerce_created_customer', function ($customer_id) {
+    if (!empty($_POST['first_name'])) {
+        update_user_meta($customer_id, 'first_name', sanitize_text_field($_POST['first_name']));
+    }
+    if (!empty($_POST['last_name'])) {
+        update_user_meta($customer_id, 'last_name', sanitize_text_field($_POST['last_name']));
+    }
+    if (!empty($_POST['billing_phone'])) {
+        update_user_meta($customer_id, 'billing_phone', sanitize_text_field($_POST['billing_phone']));
+    }
+});
