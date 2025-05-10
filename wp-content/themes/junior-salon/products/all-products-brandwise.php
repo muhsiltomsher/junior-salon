@@ -78,6 +78,19 @@ $loop = new WP_Query($args);
     const currentTermId = <?php echo get_queried_object_id(); ?>;
 </script>
 <script>
+const brandIdToSlug = <?php
+  $brands = get_terms(['taxonomy' => 'product_brand', 'hide_empty' => false]);
+  $map = [];
+  foreach ($brands as $brand) {
+      $map[$brand->term_id] = $brand->slug;
+  }
+  echo json_encode($map);
+?>;
+const currentBrandSlug = "<?php echo get_queried_object()->slug; ?>";
+</script>
+
+
+<script>
 function openDrawerfilter() {
     document.getElementById('drawer-overlay').classList.remove('hidden');
     document.getElementById('drawer-container-filter').classList.remove('hidden');
@@ -224,6 +237,16 @@ jQuery(document).ready(function($) {
         selectedCategories = $('input[name="product_cat[]"]:checked').map(function() { return $(this).val(); }).get();
         selectedBrands = $('input[name="product_brand[]"]:checked').map(function() { return $(this).val(); }).get();
         selectedAge = $('input[name="age_product_cat[]"]:checked').map(function() { return $(this).val(); }).get();
+   // 🔁 Convert ID to slug if needed
+   if (selectedBrands.length === 1) {
+        const selectedBrandSlug = brandIdToSlug[selectedBrands[0]];
+        if (selectedBrandSlug && selectedBrandSlug !== currentBrandSlug) {
+            window.location.href = '/junior-salon/brand/' + selectedBrandSlug + '/';
+            return;
+        }
+    }
+
+     
         $('#drawer-overlay').trigger('click');
         $('#load-more').hide();
         currentPage = 1;
