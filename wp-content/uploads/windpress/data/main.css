@@ -7,13 +7,19 @@
 
 @import url('https://cdn-uicons.flaticon.com/2.6.0/uicons-thin-rounded/css/uicons-thin-rounded.css')
 
+[data-accordion-icon][aria-expanded="true"] {
+  transform: rotate(180deg);
+}
+
+
 
 /* Basic Reset */
+@layer base {
 body {
   margin: 0px;
   font-family: "Instrument Sans", sans-serif; /* Default body font */
 }
-
+}
 /* Custom Fonts at Base Layer */
 @layer base {
   html, body {
@@ -64,3 +70,7 @@ body {
     background-color: #DEAF27; /* Yellow */
   }
 }
+
+.opacity-50 { opacity: 0.5; }
+.cursor-not-allowed { cursor: not-allowed; }
+.border-black.bg-black.text-white { /* already present for active */ }

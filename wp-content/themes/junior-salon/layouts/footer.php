@@ -1,9 +1,9 @@
 <footer class="bg-gray-900 text-white py-12 px-6 font-sans">
-  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
-    
-    <!-- Brand & Links -->
-    <div class="flex-1 min-w-[250px]">
-      <?php 
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
+
+        <!-- Brand & Links -->
+        <div class="flex-1 min-w-[250px]">
+            <?php 
         if (has_custom_logo()) {
           $logo_id = get_theme_mod('custom_logo');
           $logo_width = get_theme_mod('logo_width', 150); // Default width
@@ -15,13 +15,13 @@
           echo '<h1 class="text-2xl font-bold"><a href="' . esc_url(home_url('/')) . '">' . get_bloginfo('name') . '</a></h1>';
         }
       ?>
-      <p class="mt-4"><?php bloginfo('description'); ?></p>
+            <p class="mt-4"><?php bloginfo('description'); ?></p>
 
-      <!-- Footer Menus -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8 text-sm text-gray-300">
-        <div>
-          <h4 class="font-semibold mb-2 text-white">SHOP</h4>
-          <?php
+            <!-- Footer Menus -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8 text-sm text-gray-300">
+                <div>
+                    <h4 class="font-semibold mb-2 text-white">SHOP</h4>
+                    <?php
             wp_nav_menu(array(
               'theme_location' => 'footer1',
               'container' => false,
@@ -29,10 +29,10 @@
               'fallback_cb' => false,
             ));
           ?>
-        </div>
-        <div>
-          <h4 class="font-semibold mb-2 text-white">INFORMATION</h4>
-          <?php
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2 text-white">INFORMATION</h4>
+                    <?php
             wp_nav_menu(array(
               'theme_location' => 'footer2',
               'container' => false,
@@ -40,10 +40,10 @@
               'fallback_cb' => false,
             ));
           ?>
-        </div>
-        <div>
-          <h4 class="font-semibold mb-2 text-white">CUSTOMER CARE</h4>
-          <?php
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2 text-white">CUSTOMER CARE</h4>
+                    <?php
             wp_nav_menu(array(
               'theme_location' => 'footer3',
               'container' => false,
@@ -51,30 +51,35 @@
               'fallback_cb' => false,
             ));
           ?>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- Newsletter + Image -->
+        <div class="flex-1 min-w-[300px]">
+            <img src="https://tomsher.co/junior-salon/wp-content/uploads/2025/04/c2ed4663d503957fd55962841ea382a0351506cf.png"
+                alt="Kidswear promo" class="rounded-xl w-full mb-6" />
+            <h3 class="text-lg font-semibold mb-1">KEEP ME UPDATED</h3>
+            <p class="text-sm text-gray-300 mb-4">Subscribe to get notified about product launches, special offers and
+                company news.</p>
+            <form class="flex">
+                <input type="email" placeholder="Enter your email"
+                    class="flex-1 px-4 py-2 rounded-l-md border-none text-black" />
+                <button type="submit"
+                    class="bg-yellow-400 text-black font-semibold px-4 py-2 rounded-r-md hover:bg-yellow-300">Subscribe</button>
+            </form>
+        </div>
     </div>
 
-    <!-- Newsletter + Image -->
-    <div class="flex-1 min-w-[300px]">
-      <img src="https://tomsher.co/junior-salon/wp-content/uploads/2025/04/c2ed4663d503957fd55962841ea382a0351506cf.png" alt="Kidswear promo" class="rounded-xl w-full mb-6" />
-      <h3 class="text-lg font-semibold mb-1">KEEP ME UPDATED</h3>
-      <p class="text-sm text-gray-300 mb-4">Subscribe to get notified about product launches, special offers and company news.</p>
-      <form class="flex">
-        <input type="email" placeholder="Enter your email" class="flex-1 px-4 py-2 rounded-l-md border-none text-black" />
-        <button type="submit" class="bg-yellow-400 text-black font-semibold px-4 py-2 rounded-r-md hover:bg-yellow-300">Subscribe</button>
-      </form>
-    </div>
-  </div>
+    <!-- Social + Payment + Copyright -->
+    <div
+        class="max-w-7xl mx-auto mt-10 border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400 gap-4">
 
-  <!-- Social + Payment + Copyright -->
-  <div class="max-w-7xl mx-auto mt-10 border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400 gap-4">
+        <!-- Social Links -->
+        <div class="flex items-center gap-4">
+            <span class="text-white font-semibold text-sm">STAY IN TOUCH</span>
 
-    <!-- Social Links -->
-    <div class="flex items-center gap-4">
-      <span class="text-white font-semibold text-sm">STAY IN TOUCH</span>
-		
-<?php
+            <?php
 // Get the social media URLs from the Customizer
 $facebook_url = get_theme_mod('facebook_url');
 $twitter_url = get_theme_mod('twitter_url');
@@ -98,40 +103,49 @@ if ($instagram_url) {
 echo '</div>';
 ?>
 
-		
-		
+
+
+        </div>
+
+        <!-- Payment Cards -->
+        <div class="flex items-center gap-2">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" class="h-6  w-auto"
+                style="height:24px; width:auto;" alt="Visa">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-6  w-auto"
+                style="height:24px; width:auto;" alt="Mastercard">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_Pay_Logo.svg" class="h-6  w-auto"
+                style="height:24px; width:auto;" alt="GPay">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="h-6  w-auto"
+                style="height:24px; width:auto;" alt="Apple Pay">
+
+        </div>
     </div>
 
-    <!-- Payment Cards -->
-    <div class="flex items-center gap-2">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" class="h-6  w-auto"   style="height:24px; width:auto;" alt="Visa">
-   <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-6  w-auto"  style="height:24px; width:auto;" alt="Mastercard">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_Pay_Logo.svg" class="h-6  w-auto"  style="height:24px; width:auto;" alt="GPay">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="h-6  w-auto"  style="height:24px; width:auto;" alt="Apple Pay">
-
- </div>
-  </div>
-
-  <!-- Bottom -->
-  <div class="text-center text-gray-500 mt-4 text-xs">
-    <?php 
+    <!-- Bottom -->
+    <div class="text-center text-gray-500 mt-4 text-xs">
+        <?php 
       $custom_copyright = get_theme_mod('junior_salon_footer_copyright');
       echo $custom_copyright ? esc_html($custom_copyright) : '&copy; ' . date("Y") . ' ' . get_bloginfo('name') . '. All rights reserved. | Designed by tomsher';
     ?>
-  </div>
+    </div>
 </footer>
 
-    <?php wp_footer(); ?>
+<?php wp_footer(); ?>
 </body>
-</html>
-    <!-- Custom JavaScript for Toggling Mobile Menu -->
-    <script>
-        const menuToggle = document.getElementById('menu-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
 
-        menuToggle.addEventListener('click', function() {
-            mobileMenu.classList.toggle('hidden'); // Toggle the visibility of the mobile menu
-        });
-    </script>
-    
+</html>
+<!-- Custom JavaScript for Toggling Mobile Menu -->
+<script>
+const menuToggle = document.getElementById('menu-toggle');
+const mobileMenu = document.getElementById('mobile-menu');
+
+menuToggle.addEventListener('click', function() {
+    mobileMenu.classList.toggle('hidden'); // Toggle the visibility of the mobile menu
+});
+</script>
+
+
+
+<script src="https://unpkg.com/alpinejs" defer></script>
+
 <?php wp_footer(); ?>
