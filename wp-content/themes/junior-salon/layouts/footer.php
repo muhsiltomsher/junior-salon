@@ -146,6 +146,41 @@ menuToggle.addEventListener('click', function() {
 
 
 
+<!-- Drawer -->
+
+<?php get_template_part('components/drawers/myaccount'); ?>
+
+<?php get_template_part('components/drawers/drawer', null, [
+  'id' => 'drawer-search',
+  'title' => 'Search',
+  'content' => do_shortcode('[fibosearch]')
+]); ?>
+
+<script>
+  function openDrawer(id) {
+    const drawer = document.getElementById(id);
+    const content = drawer.querySelector('.drawer-content');
+    drawer.classList.remove('hidden');
+    setTimeout(() => content.classList.remove('translate-x-full'), 10);
+  }
+
+  function closeDrawer(id) {
+    const drawer = document.getElementById(id);
+    const content = drawer.querySelector('.drawer-content');
+    content.classList.add('translate-x-full');
+    setTimeout(() => drawer.classList.add('hidden'), 300);
+  }
+</script>
+
+
+<!-- Drawer -->
+
+
+
+
+
+
+
 <script src="https://unpkg.com/alpinejs" defer></script>
 
 <?php wp_footer(); ?>
