@@ -3,237 +3,532 @@
  * Template Name: Custom Checkout Page
  */
 include get_template_directory() . '/layouts/header.php'; ?>
+  <h1 class="page-title"><?php the_title(); ?></h1>
 
-<div class="custom-checkout-page container">
-    <h1 class="page-title"><?php the_title(); ?></h1>
 
-    <div class="woocommerce-checkout-wrapper">
-      <?php   
-        // Load WooCommerce checkout form
-      // echo do_shortcode('[woocommerce_checkout]');
-      ?>
-    </div>  
+
+<?php
+$current_user = wp_get_current_user();
+$is_logged_in = is_user_logged_in();
+$login_error = '';
+
+// Handle login if submitted
+if (isset($_POST['wc_login_submit'])) {
+    $creds = array(
+        'user_login'    => sanitize_user($_POST['username']),
+        'user_password' => $_POST['password'],
+        'remember'      => isset($_POST['rememberme']),
+    );
+
+    $user = wp_signon($creds, false);
+
+    if (is_wp_error($user)) {
+        $login_error = $user->get_error_message();
+    } else {
+        // Only logout current user AFTER verifying new user is valid
+        if ($is_logged_in && $user->ID !== $current_user->ID) {
+            wp_logout(); // log out old user only if new login is different
+        }
+
+        wp_set_current_user($user->ID);
+        wp_set_auth_cookie($user->ID);
+        wp_redirect(wc_get_checkout_url());
+        exit;
+    }
+}
+?>
+
+<div class="bg-white border border-gray-200 p-6 max-w-xl mx-auto rounded shadow-sm">
+  <div class="flex justify-between items-center mb-2">
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-800">Sign In</h2>
+    <?php if ($is_logged_in): ?>
+      <button onclick="document.getElementById('wc-login-box').classList.toggle('hidden')" class="text-xs underline text-gray-600 hover:text-black">Modify</button>
+    <?php endif; ?>
+  </div>
+
+  <hr class="mb-4">
+
+  <?php if ($is_logged_in): ?>
+    <p class="text-sm text-gray-400 mb-1">Your Email Is</p>
+    <p class="text-sm text-black"><?php echo esc_html($current_user->user_email); ?></p>
+  <?php endif; ?>
+
+  <!-- Show login box if not logged in or error occurred -->
+  <div id="wc-login-box" class="<?php echo (!$is_logged_in || $login_error) ? '' : 'hidden'; ?> mt-6 border-t pt-4">
+    <?php if (!empty($login_error)): ?>
+      <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+        <?php echo $login_error; ?>
+      </div>
+    <?php endif; ?>
+
+    <form method="post" class="woocommerce-form woocommerce-form-login login space-y-4">
+      <p class="text-sm text-gray-700">Email address</p>
+      <input type="text" class="w-full border rounded px-3 py-2 text-sm" name="username" autocomplete="username" required>
+
+      <p class="text-sm text-gray-700">Password</p>
+      <input class="w-full border rounded px-3 py-2 text-sm" type="password" name="password" autocomplete="current-password" required>
+
+      <div class="flex items-center justify-between mt-4">
+        <label class="text-sm text-gray-600">
+          <input class="mr-1" type="checkbox" name="rememberme"> Remember me
+        </label>
+        <a class="text-sm text-blue-600 underline" href="<?php echo esc_url(wp_lostpassword_url()); ?>">Forgot password?</a>
+      </div>
+
+      <input type="hidden" name="wc_login_submit" value="1" />
+
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm mt-4">
+        Login
+      </button>
+    </form>
+  </div>
 </div>
 
 
-<div class="container mx-auto p-6 bg-white">
-    <div class="flex flex-col space-y-8">
-        <!-- User Info Section -->
-        <div class="space-y-4">
-            <h2 class="text-2xl font-semibold">Sign In</h2>
-            <div class="border-b pb-4">
-                <?php if ( is_user_logged_in() ) : ?>
-                    <p class="text-gray-600">Your Email: <?php echo wp_get_current_user()->user_email; ?></p>
-                    <a href="<?php echo wp_logout_url(); ?>" class="text-blue-500 hover:underline">Logout</a>
-                <?php else : ?>
-                    <a href="<?php echo wp_login_url(); ?>" class="text-blue-500 hover:underline">Login</a>
-                <?php endif; ?>
-            </div>
-        </div>
+<?php
+$current_user = wp_get_current_user();
+$user_id = $current_user->ID;
+$is_logged_in = is_user_logged_in();
 
-        <!-- Deliver To (Shipping Address) Section -->
-        <div class="space-y-4">
-            <h2 class="text-2xl font-semibold">Deliver To</h2>
-            <div id="shipping-address-container">
-                <?php 
-                    $user_id = get_current_user_id();
-                    $shipping_fields = array(
-                        'shipping_first_name' => get_user_meta($user_id, 'shipping_first_name', true),
-                        'shipping_last_name' => get_user_meta($user_id, 'shipping_last_name', true),
-                        'shipping_address_1' => get_user_meta($user_id, 'shipping_address_1', true),
-                        'shipping_address_2' => get_user_meta($user_id, 'shipping_address_2', true),
-                        'shipping_city' => get_user_meta($user_id, 'shipping_city', true),
-                        'shipping_postcode' => get_user_meta($user_id, 'shipping_postcode', true),
-                        'shipping_country' => get_user_meta($user_id, 'shipping_country', true),
-                        'shipping_state' => get_user_meta($user_id, 'shipping_state', true),
-                        'shipping_phone' => get_user_meta($user_id, 'shipping_phone', true), // If available
-                    );
-                ?>
 
-                <div id="shipping-address-display" class="space-y-2">
-                    <?php foreach ($shipping_fields as $key => $value) : ?>
-                        <?php if (!empty($value)) : ?>
-                            <div class="flex justify-between">
-                                <span class="font-medium"><?php echo ucfirst(str_replace('_', ' ', $key)); ?>:</span>
-                                <p id="<?php echo $key; ?>-text" class="text-gray-600"><?php echo $value; ?></p>
-                            </div>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                    <button id="edit-shipping-address" class="text-blue-500 hover:underline">Edit/Change</button>
-                </div>
+$address_fields = array(
+  'first_name' => get_user_meta($user_id, 'shipping_first_name', true),
+  'last_name'  => get_user_meta($user_id, 'shipping_last_name', true),
+  'company'    => get_user_meta($user_id, 'shipping_company', true),
+  'address_1'  => get_user_meta($user_id, 'shipping_address_1', true),
+  'address_2'  => get_user_meta($user_id, 'shipping_address_2', true),
+  'city'       => get_user_meta($user_id, 'shipping_city', true),
+  'state'      => get_user_meta($user_id, 'shipping_state', true),
+  'postcode'   => get_user_meta($user_id, 'shipping_postcode', true),
+  'country'    => get_user_meta($user_id, 'shipping_country', true),
+  'phone'      => get_user_meta($user_id, 'shipping_phone', true),
+);
+?>
 
-                <!-- Editable Shipping Address -->
-                <div id="shipping-address-edit" style="display: none;">
-                    <div class="space-y-2">
-                        <?php foreach ($shipping_fields as $key => $value) : ?>
-                            <div class="mb-4">
-                                <label for="<?php echo $key; ?>" class="block"><?php echo ucfirst(str_replace('_', ' ', $key)); ?>:</label>
-                                <input type="text" id="<?php echo $key; ?>" name="<?php echo $key; ?>" value="<?php echo $value; ?>" class="w-full border rounded p-2">
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button id="save-shipping-address" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Save Changes</button>
-                </div>
-            </div>
-        </div>
 
-        <!-- Billing Address Section -->
-        <div class="space-y-4">
-            <h2 class="text-2xl font-semibold">Billing Address</h2>
-            <div id="billing-address-container">
-                <?php 
-                    $billing_fields = array(
-                        'billing_first_name' => get_user_meta($user_id, 'billing_first_name', true),
-                        'billing_last_name' => get_user_meta($user_id, 'billing_last_name', true),
-                        'billing_address_1' => get_user_meta($user_id, 'billing_address_1', true),
-                        'billing_address_2' => get_user_meta($user_id, 'billing_address_2', true),
-                        'billing_city' => get_user_meta($user_id, 'billing_city', true),
-                        'billing_postcode' => get_user_meta($user_id, 'billing_postcode', true),
-                        'billing_country' => get_user_meta($user_id, 'billing_country', true),
-                        'billing_state' => get_user_meta($user_id, 'billing_state', true),
-                        'billing_phone' => get_user_meta($user_id, 'billing_phone', true), // If available
-                    );
-                ?>
+<div class="bg-white border border-gray-200 p-6 max-w-xl mx-auto rounded shadow-sm mt-8">
+  <div class="flex justify-between items-center mb-2">
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-800">Deliver To</h2>
+    <button onclick="document.getElementById('shippingEditBox').classList.toggle('hidden')" class="text-xs underline text-gray-600 hover:text-black">Edit/Change</button>
+  </div>
 
-                <div id="billing-address-display" class="space-y-2">
-                    <?php foreach ($billing_fields as $key => $value) : ?>
-                        <?php if (!empty($value)) : ?>
-                            <div class="flex justify-between">
-                                <span class="font-medium"><?php echo ucfirst(str_replace('_', ' ', $key)); ?>:</span>
-                                <p id="<?php echo $key; ?>-text" class="text-gray-600"><?php echo $value; ?></p>
-                            </div>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                    <button id="edit-billing-address" class="text-blue-500 hover:underline">Edit/Change</button>
-                </div>
+  <hr class="mb-4">
 
-                <!-- Editable Billing Address -->
-                <div id="billing-address-edit" style="display: none;">
-                    <div class="space-y-2">
-                        <?php foreach ($billing_fields as $key => $value) : ?>
-                            <div class="mb-4">
-                                <label for="<?php echo $key; ?>" class="block"><?php echo ucfirst(str_replace('_', ' ', $key)); ?>:</label>
-                                <input type="text" id="<?php echo $key; ?>" name="<?php echo $key; ?>" value="<?php echo $value; ?>" class="w-full border rounded p-2">
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button id="save-billing-address" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Save Changes</button>
-                </div>
-            </div>
-        </div>
+  <div id="shipping-display" class="text-sm text-gray-800 leading-relaxed">
+    <?php if ($is_logged_in): ?>
+      <?php echo esc_html(get_user_meta($user_id, 'shipping_first_name', true)) . ' ' . esc_html(get_user_meta($user_id, 'shipping_last_name', true)); ?><br>
+      <?php echo esc_html(get_user_meta($user_id, 'shipping_address_1', true)); ?><br>
+      <?php echo esc_html(get_user_meta($user_id, 'shipping_city', true)); ?>, <?php echo esc_html(get_user_meta($user_id, 'shipping_state', true)); ?><br>
+      <?php echo esc_html(get_user_meta($user_id, 'shipping_country', true)); ?><br>
+      <?php echo esc_html(get_user_meta($user_id, 'shipping_phone', true)); ?>
+    <?php else: ?>
+      <p class="italic text-gray-500">Not logged in.</p>
+    <?php endif; ?>
+  </div>
 
-        <!-- Payment Methods Section -->
-        <div class="space-y-4">
-            <h2 class="text-2xl font-semibold">Payment Methods</h2>
-            <div class="flex items-center space-x-4">
-                <?php
-                $available_gateways = WC()->payment_gateways->get_available_payment_gateways();
-                foreach ($available_gateways as $gateway) :
-                ?>
-                    <label class="flex items-center">
-                        <input type="radio" name="payment_method" value="<?php echo $gateway->id; ?>" class="mr-2">
-                        <span class="text-gray-600"><?php echo $gateway->get_title(); ?></span>
-                    </label>
-                <?php endforeach; ?>
-            </div>
-        </div>
+<form id="shippingEditBox" class="hidden mt-6 space-y-4" onsubmit="return saveShippingAddress(event)">
+  <div id="shipping-msg" class="text-sm"></div>
 
-        <!-- Place Order Button inside the Shopping Bag Section -->
-        <div class="w-full mt-6">
-            <button id="place-order-btn" class="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800">
-                Place Order
-            </button>
-        </div>
-    </div>
+  <div class="grid grid-cols-2 gap-3">
+    <input name="first_name" class="border px-3 py-2 text-sm rounded w-full"
+      value="<?php echo esc_attr($address_fields['first_name']); ?>" placeholder="First Name" required>
+    <input name="last_name" class="border px-3 py-2 text-sm rounded w-full"
+      value="<?php echo esc_attr($address_fields['last_name']); ?>" placeholder="Last Name" required>
+  </div>
 
-    <!-- Shopping Cart Section (Right Side) -->
-    <div class="w-1/3 bg-gray-50 p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4">Shopping Bag (<?php echo WC()->cart->get_cart_contents_count(); ?> Items)</h2>
-        <div class="space-y-4">
-            <?php
-            foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) :
-                $_product = $cart_item['data'];
-                $product_name = $_product->get_name();
-                $product_price = WC()->cart->get_product_price($_product);
-            ?>
-                <div class="flex justify-between">
-                    <p class="text-sm"><?php echo $product_name; ?></p>
-                    <p class="text-sm text-gray-600"><?php echo $product_price; ?></p>
-                </div>
-            <?php endforeach; ?>
-        </div>
+  <input name="address_1" class="border px-3 py-2 text-sm rounded w-full"
+    value="<?php echo esc_attr($address_fields['address_1']); ?>" placeholder="Address Line 1" required>
 
-        <div class="border-t mt-6 pt-4">
-            <div class="flex justify-between text-sm font-medium">
-                <p>Subtotal</p>
-                <p><?php echo WC()->cart->get_cart_subtotal(); ?></p>
-            </div>
+  <input name="address_2" class="border px-3 py-2 text-sm rounded w-full"
+    value="<?php echo esc_attr($address_fields['address_2']); ?>" placeholder="Address Line 2">
 
-            <!-- Conditionally display Delivery if Shipping is enabled -->
-            <?php if ( WC()->cart->needs_shipping() && WC()->cart->get_shipping_total() > 0 ) : ?>
-                <div class="flex justify-between text-sm font-medium">
-                    <p>Delivery</p>
-                    <p><?php echo WC()->cart->get_shipping_total(); ?> AED</p>
-                </div>
-            <?php endif; ?>
+  <input name="city" class="border px-3 py-2 text-sm rounded w-full"
+    value="<?php echo esc_attr($address_fields['city']); ?>" placeholder="City" required>
 
-            <div class="flex justify-between text-xl font-semibold">
-                <p>Total</p>
-                <p><?php echo WC()->cart->get_total(); ?></p>
-            </div>
-        </div>
-    </div>
+  <div class="grid grid-cols-2 gap-3">
+    <input name="state" class="border px-3 py-2 text-sm rounded w-full"
+      value="<?php echo esc_attr($address_fields['state']); ?>" placeholder="State">
+    <input name="postcode" class="border px-3 py-2 text-sm rounded w-full"
+      value="<?php echo esc_attr($address_fields['postcode']); ?>" placeholder="Postcode">
+  </div>
+
+  <input name="country" class="border px-3 py-2 text-sm rounded w-full"
+    value="<?php echo esc_attr($address_fields['country']); ?>" placeholder="Country" required>
+
+  <input name="phone" class="border px-3 py-2 text-sm rounded w-full"
+    value="<?php echo esc_attr($address_fields['phone']); ?>" placeholder="Phone">
+
+  <div class="flex justify-end gap-3 mt-4">
+    <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded hover:bg-blue-700">Save</button>
+    <button type="button" onclick="document.getElementById('shippingEditBox').classList.add('hidden')"
+      class="text-sm px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+  </div>
+</form>
+
 </div>
 
+<script>
+function saveShippingAddress(e) {
+  e.preventDefault();
+  const form = document.getElementById('shippingEditBox');
+  const formData = new FormData(form);
+  formData.append('action', 'save_shipping_address');
+
+  fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+    method: 'POST',
+    credentials: 'same-origin',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    const msgBox = document.getElementById('shipping-msg');
+    if (data.success) {
+      msgBox.className = "text-green-600";
+      msgBox.innerText = "Address updated!";
+      document.getElementById('shippingEditBox').classList.add('hidden');
+  // ✅ Update UI dynamically (no reload)
+      document.getElementById('shipping-display').innerHTML = `
+        ${form.first_name.value} ${form.last_name.value}<br>
+        ${form.address_1.value}<br>
+        ${form.city.value}, ${form.state.value}<br>
+        ${form.country.value}<br>
+        ${form.phone.value}
+      `;
+    } else {
+      msgBox.className = "text-red-600";
+      msgBox.innerText = data.message || "Failed to update.";
+    }
+  });
+  return false;
+}
+</script>
+
+
+<?php
+$current_user = wp_get_current_user();
+$user_id = $current_user->ID;
+$is_logged_in = is_user_logged_in();
+
+$billing_fields = array(
+  'first_name' => get_user_meta($user_id, 'billing_first_name', true),
+  'last_name'  => get_user_meta($user_id, 'billing_last_name', true),
+  'company'    => get_user_meta($user_id, 'billing_company', true),
+  'address_1'  => get_user_meta($user_id, 'billing_address_1', true),
+  'address_2'  => get_user_meta($user_id, 'billing_address_2', true),
+  'city'       => get_user_meta($user_id, 'billing_city', true),
+  'state'      => get_user_meta($user_id, 'billing_state', true),
+  'postcode'   => get_user_meta($user_id, 'billing_postcode', true),
+  'country'    => get_user_meta($user_id, 'billing_country', true),
+  'phone'      => get_user_meta($user_id, 'billing_phone', true),
+);
+?>
+
+<div class="bg-white border border-gray-200 p-6 max-w-xl mx-auto rounded shadow-sm mt-8">
+  <div class="flex justify-between items-center mb-2">
+    <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-800">Billing Address</h2>
+    <button onclick="document.getElementById('billingEditBox').classList.toggle('hidden')" class="text-xs underline text-gray-600 hover:text-black">Edit/Change</button>
+  </div>
+
+  <hr class="mb-4">
+
+  <label class="block mb-4 text-sm">
+    <input type="checkbox" id="sameAsShipping" class="mr-2"> Billing address is same as shipping address
+  </label>
+
+  <div id="billing-display" class="text-sm text-gray-800 leading-relaxed">
+    <?php if ($is_logged_in): ?>
+      <?php echo esc_html($billing_fields['first_name'] . ' ' . $billing_fields['last_name']); ?><br>
+      <?php echo esc_html($billing_fields['address_1']); ?><br>
+      <?php echo esc_html($billing_fields['city'] . ', ' . $billing_fields['state']); ?><br>
+      <?php echo esc_html($billing_fields['country']); ?><br>
+      <?php echo esc_html($billing_fields['phone']); ?>
+    <?php else: ?>
+      <p class="italic text-gray-500">Not logged in.</p>
+    <?php endif; ?>
+  </div>
+
+  <form id="billingEditBox" class="hidden mt-6 space-y-4" onsubmit="return saveBillingAddress(event)">
+    <div id="billing-msg" class="text-sm"></div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <input name="first_name" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['first_name']); ?>" placeholder="First Name" required>
+      <input name="last_name" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['last_name']); ?>" placeholder="Last Name" required>
+    </div>
+    <input name="address_1" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['address_1']); ?>" placeholder="Address Line 1" required>
+    <input name="address_2" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['address_2']); ?>" placeholder="Address Line 2">
+    <input name="city" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['city']); ?>" placeholder="City" required>
+    <div class="grid grid-cols-2 gap-3">
+      <input name="state" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['state']); ?>" placeholder="State">
+      <input name="postcode" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['postcode']); ?>" placeholder="Postcode">
+    </div>
+    <input name="country" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['country']); ?>" placeholder="Country" required>
+    <input name="phone" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['phone']); ?>" placeholder="Phone">
+
+    <div class="flex justify-end gap-3 mt-4">
+      <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded hover:bg-blue-700">Save</button>
+      <button type="button" onclick="document.getElementById('billingEditBox').classList.add('hidden')" class="text-sm px-4 py-2 border rounded hover:bg-gray-100">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function saveBillingAddress(e) {
+  e.preventDefault();
+  const form = document.getElementById('billingEditBox');
+  const formData = new FormData(form);
+  formData.append('action', 'save_billing_address');
+
+  fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+    method: 'POST',
+    credentials: 'same-origin',
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    const msgBox = document.getElementById('billing-msg');
+    if (data.success) {
+      msgBox.className = "text-green-600";
+      msgBox.innerText = "Billing address updated!";
+      document.getElementById('billingEditBox').classList.add('hidden');
+
+      // Update UI
+      document.getElementById('billing-display').innerHTML = `
+        ${form.first_name.value} ${form.last_name.value}<br>
+        ${form.address_1.value}<br>
+        ${form.city.value}, ${form.state.value}<br>
+        ${form.country.value}<br>
+        ${form.phone.value}
+      `;
+    } else {
+      msgBox.className = "text-red-600";
+      msgBox.innerText = data.message || "Failed to update.";
+    }
+  });
+  return false;
+}
+
+// Copy shipping to billing if checkbox is clicked
+
+
+const checkbox = document.getElementById('sameAsShipping');
+checkbox?.addEventListener('change', async function () {
+  const formBox = document.getElementById('billingEditBox');
+
+  if (this.checked) {
+    formBox.classList.remove('hidden'); // ✅ show the editable box
+
+    const response = await fetch('<?php echo admin_url('admin-ajax.php'); ?>?action=get_shipping_address', { credentials: 'same-origin' });
+    const data = await response.json();
+    if (data.success) {
+      const form = document.getElementById('billingEditBox');
+      for (const key in data.data) {
+        const input = form.querySelector(`[name="${key}"]`);
+        if (input) input.value = data.data[key];
+      }
+    }
+  } else {
+    formBox.classList.add('hidden'); // optional: hide if unchecked
+  }
+});
+
+
+</script>
+
+<?php
+if (!function_exists('wc')) return;
+
+$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
+$chosen_gateway     = WC()->session->get('chosen_payment_method');
+?>
+
+<div class="bg-white border border-gray-200 p-6 max-w-xl mx-auto rounded shadow-sm mt-8">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-800 mb-4">Payment Methods</h2>
+
+  <form id="payment-methods" class="space-y-4">
+    <?php foreach ($available_gateways as $gateway): ?>
+      <label class="flex items-center border px-4 py-3 rounded cursor-pointer hover:border-blue-500 transition <?php echo $gateway->id === $chosen_gateway ? 'border-blue-600 bg-blue-50' : 'border-gray-300'; ?>">
+        <input type="radio" name="payment_method" value="<?php echo esc_attr($gateway->id); ?>" class="mr-3"
+               <?php checked($gateway->id, $chosen_gateway); ?>>
+        <div class="flex flex-col text-sm text-gray-700">
+          <span class="font-medium"><?php echo esc_html($gateway->get_title()); ?></span>
+          <?php if ($gateway->get_description()): ?>
+            <span class="text-xs text-gray-500 mt-1"><?php echo wp_kses_post($gateway->get_description()); ?></span>
+          <?php endif; ?>
+        </div>
+        <?php if ($gateway->id === 'tabby'): ?>
+          <img src="/wp-content/uploads/tabby-logo.svg" alt="Tabby" class="ml-auto h-6">
+        <?php endif; ?>
+        <?php if ($gateway->id === 'cod'): ?>
+          <span class="ml-auto text-xs text-gray-400">AED 10 fee applies</span>
+        <?php endif; ?>
+      </label>
+    <?php endforeach; ?>
+  </form>
+</div>
+<script>
+document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+  radio.addEventListener('change', function () {
+    fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      credentials: 'same-origin',
+      body: new URLSearchParams({
+        action: 'woocommerce_update_payment_method',
+        payment_method: this.value
+      })
+    });
+  });
+});
+</script>
+
+<?php
+$cart = WC()->cart->get_cart();
+$cart_count = WC()->cart->get_cart_contents_count();
+?>
+
+<div class="bg-white border border-gray-200 p-6 max-w-xl mx-auto rounded shadow-sm mt-8">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-800 mb-4">
+    Shopping Bag (<?php echo $cart_count; ?> <?php echo _n('item', 'items', $cart_count); ?>)
+  </h2>
+
+  <div class="space-y-6">
+    <?php foreach ($cart as $cart_item_key => $item): 
+      $product = $item['data'];
+      $product_id = $item['product_id'];
+      $product_name = $product->get_name();
+      $product_price = wc_price($product->get_price());
+      $product_permalink = $product->get_permalink();
+      $product_image = wp_get_attachment_image_url($product->get_image_id(), 'thumbnail');
+      $variation = wc_get_formatted_cart_item_data($item, true);
+    ?>
+      <div class="flex items-start gap-4 border-b pb-4">
+        <img src="<?php echo esc_url($product_image); ?>" alt="<?php echo esc_attr($product_name); ?>" class="w-20 h-24 object-cover rounded" />
+
+        <div class="flex-1">
+          <p class="text-xs text-gray-500 font-semibold"><?php echo esc_html($product->get_attribute('brand') ?: $product->get_name()); ?></p>
+          <p class="text-sm font-medium text-gray-800"><?php echo esc_html($product_name); ?></p>
+          <?php if ($variation): ?>
+            <div class="text-xs text-gray-500 mt-1"><?php echo $variation; ?></div>
+          <?php endif; ?>
+          <p class="text-sm font-semibold text-red-600 mt-2"><?php echo $product_price; ?></p>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  </div>
+</div>
+
+
+<?php
+$cart = WC()->cart;
+$totals = $cart->get_totals();
+$chosen_shipping = WC()->session->get('chosen_shipping_methods')[0] ?? '';
+$shipping_total = $cart->get_shipping_total();
+$has_shipping_fee = $shipping_total !== null && $shipping_total > 0;
+
+?>
+
+<div class="bg-white border border-gray-200 p-6 max-w-xl mx-auto rounded shadow-sm mt-8 space-y-6">
+  <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-800">Order Summary</h2>
+
+  <!-- Coupon Field -->
+  <form class="flex gap-2" method="post" id="apply-coupon-form">
+    <input type="text" name="coupon_code" placeholder="Coupon Code" required
+      class="border w-full px-3 py-2 text-sm rounded" />
+    <button type="submit"
+      class="bg-black text-white px-5 py-2 text-sm font-medium uppercase hover:bg-gray-900">Apply</button>
+  </form>
+
+  <?php wc_print_notices(); ?>
+
+  <hr />
+
+  <!-- Totals -->
+  <div class="text-sm text-gray-800 space-y-3">
+    <div class="flex justify-between">
+      <span>Subtotal</span>
+<span class="total-placeholder"><?php wc_cart_totals_order_total_html(); ?></span>
+
+    </div>
+
+    <?php if ($cart->get_shipping_total() > 0): ?>
+    <div class="flex justify-between">
+      <span>Delivery</span>
+      <span><?php echo wc_price($cart->get_shipping_total()); ?></span>
+    </div>
+    <?php endif; ?>
+
+    <?php if (WC()->shipping->get_shipping_methods()): ?>
+      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 text-sm rounded mt-2">
+        ✅ Your order qualifies for FREE shipping
+      </div>
+    <?php endif; ?>
+<div id="coupon-msg" class="mb-4"></div>
+    <div class="flex justify-between font-semibold text-lg pt-4 border-t mt-4">
+      <span>Total</span>
+     <span class="total-placeholder"><?php wc_cart_totals_order_total_html(); ?></span>
+
+    </div>
+    <p class="text-xs text-gray-500">Duties and taxes included</p>
+  </div>
+
+ <form name="checkout" method="post" class="checkout woocommerce-checkout" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
+  
+  <div class="hidden">
+    <?php
+    do_action( 'woocommerce_checkout_before_customer_details' );
+    do_action( 'woocommerce_checkout_billing' );
+    do_action( 'woocommerce_checkout_shipping' );
+    do_action( 'woocommerce_checkout_after_customer_details' );
+    do_action( 'woocommerce_checkout_before_order_review' );
+    do_action( 'woocommerce_checkout_order_review' );
+    do_action( 'woocommerce_checkout_after_order_review' );
+    ?>
+  </div>
+
+  <!-- ✅ Your custom visible Place Order button -->
+  <button type="submit"
+    class="w-full bg-black text-white py-3 rounded text-sm font-semibold uppercase hover:bg-gray-900">
+    Place Order
+  </button>
+</form>
+
+</div>
 
 
 <script>
-    // Toggle editable fields for shipping and billing addresses
-    document.getElementById('edit-billing-address').addEventListener('click', function() {
-        document.getElementById('billing-address-display').style.display = 'none';
-        document.getElementById('billing-address-edit').style.display = 'block';
-    });
-
-    document.getElementById('save-billing-address').addEventListener('click', function() {
-        // Save the new billing address and update the display without page reload
-        var newBillingAddress = [];
-        document.querySelectorAll('#billing-address-edit input').forEach(function(input) {
-            newBillingAddress.push(input.value);
-        });
-
-        document.querySelector('#billing-address-display').innerHTML = newBillingAddress.join('<br>');
-        document.getElementById('billing-address-display').style.display = 'block';
-        document.getElementById('billing-address-edit').style.display = 'none';
-
-        // Here you should make an AJAX request to save the billing address
-    });
-
-    document.getElementById('edit-shipping-address').addEventListener('click', function() {
-        document.getElementById('shipping-address-display').style.display = 'none';
-        document.getElementById('shipping-address-edit').style.display = 'block';
-    });
-
-    document.getElementById('save-shipping-address').addEventListener('click', function() {
-        // Save the new shipping address and update the display without page reload
-        var newShippingAddress = [];
-        document.querySelectorAll('#shipping-address-edit input').forEach(function(input) {
-            newShippingAddress.push(input.value);
-        });
-
-        document.querySelector('#shipping-address-display').innerHTML = newShippingAddress.join('<br>');
-        document.getElementById('shipping-address-display').style.display = 'block';
-        document.getElementById('shipping-address-edit').style.display = 'none';
-
-        // Here you should make an AJAX request to save the shipping address
-    });
-
-    // Handle the Place Order button inside the Shopping Bag section
-    document.getElementById('place-order-btn').addEventListener('click', function() {
-        // Trigger the WooCommerce Place Order button functionality
-        document.querySelector('form.checkout').submit();
-    });
+document.getElementById('finalPlaceOrder')?.addEventListener('click', function () {
+  document.querySelector('form.checkout')?.requestSubmit(); // Modern & safe
+});
 </script>
+<script>
+document.getElementById('apply-coupon-form')?.addEventListener('submit', function (e) {
+  e.preventDefault();
 
+  const code = this.coupon_code.value.trim();
+  if (!code) return;
+
+  fetch('<?php echo admin_url('admin-ajax.php'); ?>', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      action: 'apply_coupon',
+      coupon: code
+    }),
+    credentials: 'same-origin'
+  })
+  .then(res => res.json())
+  .then(data => {
+    const msg = document.getElementById('coupon-msg');
+    if (data.success) {
+      msg.innerHTML = '<div class="text-green-600 text-sm">Coupon applied!</div>';
+      document.querySelector('.subtotal-placeholder').innerHTML = data.subtotal;
+      document.querySelector('.total-placeholder').innerHTML = data.total;
+    } else {
+      msg.innerHTML = '<div class="text-red-600 text-sm">' + (data.data.message || 'Invalid coupon') + '</div>';
+    }
+  });
+});
+</script>
 
 
 <?php include get_template_directory() . '/layouts/footer.php'; ?>
