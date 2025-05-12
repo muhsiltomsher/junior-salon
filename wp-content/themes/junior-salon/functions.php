@@ -266,6 +266,7 @@ function load_testimonials_ajax() {
     wp_reset_postdata();
     wp_die();
 }
+
 function load_tab_products() {
   $cat = $_GET['cat'] ?? '';
   echo load_products_by_category($cat);
@@ -1365,4 +1366,140 @@ add_action('woocommerce_created_customer', function ($customer_id) {
     if (!empty($_POST['billing_phone'])) {
         update_user_meta($customer_id, 'billing_phone', sanitize_text_field($_POST['billing_phone']));
     }
+});
+
+
+
+add_action('wp_ajax_save_shipping_address', 'ajax_save_shipping_address');
+function ajax_save_shipping_address() {
+  if (!is_user_logged_in()) {
+    wp_send_json_error(['message' => 'Not logged in']);
+  }
+
+  $user_id = get_current_user_id();
+  $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
+
+  foreach ($fields as $field) {
+    if (isset($_POST[$field])) {
+      update_user_meta($user_id, 'shipping_' . $field, sanitize_text_field($_POST[$field]));
+    }
+  }
+
+  wp_send_json_success();
+}
+add_action('wp_ajax_save_billing_address', 'ajax_save_billing_address');
+function ajax_save_billing_address() {
+  if (!is_user_logged_in()) wp_send_json_error(['message' => 'Not logged in']);
+  $user_id = get_current_user_id();
+  $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
+  foreach ($fields as $field) {
+    if (isset($_POST[$field])) {
+      update_user_meta($user_id, 'billing_' . $field, sanitize_text_field($_POST[$field]));
+    }
+  }
+  wp_send_json_success();
+}
+
+add_action('wp_ajax_get_shipping_address', 'ajax_get_shipping_address');
+function ajax_get_shipping_address() {
+  if (!is_user_logged_in()) wp_send_json_error(['message' => 'Not logged in']);
+  $user_id = get_current_user_id();
+  $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
+  $data = [];
+  foreach ($fields as $field) {
+    $data[$field] = get_user_meta($user_id, 'shipping_' . $field, true);
+  }
+  wp_send_json_success($data);
+}
+add_action('wp_ajax_woocommerce_update_payment_method', function () {
+  if (isset($_POST['payment_method'])) {
+    WC()->session->set('chosen_payment_method', sanitize_text_field($_POST['payment_method']));
+  }
+  wp_die();
+});
+
+add_action('wp_ajax_apply_coupon', 'ajax_apply_coupon');
+add_action('wp_ajax_nopriv_apply_coupon', 'ajax_apply_coupon');
+
+function ajax_apply_coupon() {
+    if (!isset($_POST['coupon'])) {
+        wp_send_json_error(['message' => 'Coupon code is missing.']);
+    }
+
+    // Ensure cart is initialized
+    if (!WC()->cart) {
+        wc_load_cart();
+    }
+
+    $coupon_code = sanitize_text_field($_POST['coupon']);
+    $applied = WC()->cart->apply_coupon($coupon_code);
+
+    // If apply_coupon returns false, show reason
+    if (!$applied) {
+        wc_clear_notices();
+        WC()->cart->calculate_totals();
+        ob_start();
+        wc_print_notices();
+        $notice = ob_get_clean();
+
+        wp_send_json_error([
+            'message' => $notice ?: 'Invalid or expired coupon code.'
+        ]);
+    }
+
+    WC()->cart->calculate_totals();
+    wc_clear_notices(); // remove default Woo notices
+
+    ob_start();
+    wc_cart_totals_subtotal_html();
+    $subtotal = ob_get_clean();
+
+    ob_start();
+    wc_cart_totals_shipping_html();
+    $shipping = ob_get_clean();
+
+    ob_start();
+    wc_cart_totals_order_total_html();
+    $total = ob_get_clean();
+
+    wp_send_json_success([
+        'subtotal' => $subtotal,
+        'shipping' => $shipping,
+        'total'    => $total
+    ]);
+}
+
+
+function enqueue_alpine_for_cart() {
+  wp_enqueue_script('alpinejs', 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js', [], null, true);
+}
+add_action('wp_enqueue_scripts', 'enqueue_alpine_for_cart');
+add_action('wp_ajax_update_cart_item', 'custom_ajax_update_cart_item');
+add_action('wp_ajax_nopriv_update_cart_item', 'custom_ajax_update_cart_item');
+
+function custom_ajax_update_cart_item() {
+  $cart_item_key = sanitize_text_field($_POST['cart_item_key']);
+  $quantity = max(0, intval($_POST['quantity']));
+
+  if (isset(WC()->cart->cart_contents[$cart_item_key])) {
+    WC()->cart->set_quantity($cart_item_key, $quantity, true);
+  }
+
+  WC()->cart->calculate_totals();
+  wp_send_json_success();
+}
+add_action('wp_ajax_remove_cart_item', 'custom_ajax_remove_cart_item');
+add_action('wp_ajax_nopriv_remove_cart_item', 'custom_ajax_remove_cart_item');
+
+function custom_ajax_remove_cart_item() {
+  $cart_item_key = sanitize_text_field($_POST['cart_item_key']);
+  WC()->cart->remove_cart_item($cart_item_key);
+  WC()->cart->calculate_totals();
+  wp_send_json_success();
+}
+add_action('template_redirect', function() {
+  if (isset($_GET['count_only']) && $_GET['count_only'] == '1') {
+    echo WC()->cart->get_cart_contents_count();
+    exit;
+  }
 });
