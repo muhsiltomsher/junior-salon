@@ -11,7 +11,7 @@
                 $classes = implode(' ', $item->classes ?? []);
                 $is_active = strpos($classes, 'current-menu-item') !== false ? true : false;
 
-                $output .= '<li class="relative group !relative">'; // No need no-underline on <li>
+                $output .= '<li class="group !relative">'; // No need no-underline on <li>
 
                 $output .= '<a href="' . esc_url($item->url) . '" class="text-primary font-normal no-underline inline-block pb-0 transition-colors duration-300 ' . ($is_active ? '!text-secondary' : 'hover:!text-secondary') . '">';
 
