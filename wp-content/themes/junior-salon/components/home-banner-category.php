@@ -41,14 +41,21 @@ if ($collection_banner && isset($collection_banner['url'])):
   
   
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-
-      <?php foreach ($banner_categories as $cat): ?>
-        <div class=" bg-opacity-50 p-6 rounded-lg shadow-lg">
-          <h3 class="text-xl font-bold mb-2"><?php echo esc_html($cat->name); ?></h3>
-          <p class="text-sm mb-4"><?php echo esc_html($cat->description); ?></p>
-          <a href="<?php echo get_term_link($cat); ?>" class="inline-block bg-white text-black font-medium px-4 py-2 rounded hover:bg-gray-200 transition">Shop Now</a>
-        </div>
-      <?php endforeach; ?>
+<?php foreach ($banner_categories as $cat): ?>
+  <div class="bg-opacity-50 p-6 rounded-lg shadow-lg relative category-card">
+    <?php 
+      // Retrieve the category image from term meta (assuming 'category_image' is the meta key)
+      $category_image_id = get_term_meta($cat->term_id, 'thumbnail_id', true);
+  $category_image = wp_get_attachment_url($category_image_id); // Use 'medium' size or adjust as needed
+    ?>
+    <?php if ($category_image): ?>
+      <img src="<?php echo $category_image; ?>" alt="<?php echo esc_attr($cat->name); ?>" class="w-full h-48 object-cover rounded-lg mb-4 category-image">
+    <?php endif; ?>
+    <h3 class="text-xl font-bold mb-2"><?php echo esc_html($cat->name); ?></h3>
+    <p class="text-sm mb-4"><?php echo esc_html($cat->description); ?></p>
+    <a href="<?php echo get_term_link($cat); ?>" class="inline-block bg-white text-black font-medium px-4 py-2 rounded hover:bg-gray-200 transition">Shop Now</a>
+  </div>
+<?php endforeach; ?>
 
     </div>
   </div>
