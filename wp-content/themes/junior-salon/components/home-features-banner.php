@@ -14,7 +14,7 @@
 <?php
 $args = [
     'post_type' => 'home-features-banner',
-    'posts_per_page' => 1,
+    'posts_per_page' => 6,
 ];
 $banner_query = new WP_Query($args);
 
