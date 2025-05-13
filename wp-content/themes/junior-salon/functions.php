@@ -267,115 +267,77 @@ function load_testimonials_ajax() {
     wp_die();
 }
 
-function load_tab_products() {
-  $cat = $_GET['cat'] ?? '';
-  echo load_products_by_category($cat);
-  wp_die();
+
+
+
+
+
+
+
+// Return product IDs for use in product-grid.php
+function load_products_by_category($cat) {
+    $args = [
+        'post_type'      => 'product',
+        'posts_per_page' => 10,
+        'post_status'    => 'publish',
+    ];
+
+    if ($cat === 'sale') {
+        $args['meta_query'] = [
+            [
+                'key'     => '_sale_price',
+                'value'   => 0,
+                'compare' => '>',
+                'type'    => 'NUMERIC',
+            ],
+        ];
+    } elseif (!empty($cat)) {
+        $args['tax_query'] = [
+            [
+                'taxonomy' => 'product_cat',
+                'field'    => 'slug',
+                'terms'    => $cat,
+            ],
+        ];
+    }
+
+    $query = new WP_Query($args);
+    $product_ids = [];
+
+    while ($query->have_posts()) {
+        $query->the_post();
+        $product_ids[] = get_the_ID();
+    }
+
+    wp_reset_postdata();
+    return $product_ids;
 }
 
+// AJAX callback for loading tab products
+function load_tab_products() {
+    $cat = sanitize_text_field($_GET['cat'] ?? '');
 
+    if (empty($cat)) {
+        wp_send_json_error('Invalid category.');
+    }
 
-
+    $products = load_products_by_category($cat);
+    include get_template_directory() . '/components/products/product-grid.php';
+    wp_die(); // required for AJAX responses
+}
 add_action('wp_ajax_load_tab_products', 'load_tab_products');
 add_action('wp_ajax_nopriv_load_tab_products', 'load_tab_products');
 
 
 
 
-function load_products_by_category($cat) {
-    $args = [
-      'post_type' => 'product',
-      'posts_per_page' => 5,
-    ];
-  
-    if ($cat === 'sale') {
-      $args['meta_query'] = [
-        [
-          'key' => '_sale_price',
-          'value' => 0,
-          'compare' => '>',
-          'type' => 'NUMERIC'
-        ]
-      ];
-    } else {
-      $args['tax_query'] = [
-        [
-          'taxonomy' => 'product_cat',
-          'field' => 'slug',
-          'terms' => $cat,
-        ]
-      ];
-    }
-  
-    $query = new WP_Query($args);
-  
-    ob_start();
-    if ($query->have_posts()) :
-      while ($query->have_posts()) : $query->the_post();
-        global $product;
-        ?>
-        <div class="bg-white shadow rounded-lg overflow-hidden text-center p-4">
-          <a href="<?php the_permalink(); ?>">
-            <?php //the_post_thumbnail('medium', ['class' => 'w-full object-cover']); ?>
-          </a>
-
-          <?php
-$attachment_ids = $product->get_gallery_image_ids();
-$hover_image_id = $attachment_ids[0] ?? null;
-?>
-<div class="relative group w-full aspect-square overflow-hidden">
-  <img 
-    src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" 
-    class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0" 
-    alt="<?php the_title_attribute(); ?>" 
-  />
-  <?php if ($hover_image_id): ?>
-    <img 
-      src="<?php echo wp_get_attachment_image_url($hover_image_id, 'medium'); ?>" 
-      class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" 
-      alt="<?php the_title_attribute(); ?>" 
-    />
-  <?php endif; ?>
-</div>
 
 
-         <?php echo do_shortcode('[yith_wcwl_add_to_wishlist]'); ?>
 
-          <div class="mt-4">
-            <?php
-            $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
-            if (!is_wp_error($brands) && !empty($brands)) :
-                echo '<h3 class="text-sm font-medium mb-1 text-gray-500">' . esc_html($brands[0]->name) . '</h3>';
-            endif;
-            ?>
-            <h2 class="text-lg font-semibold mb-1"><?php the_title(); ?></h2>
-            <p class="text-gray-700 text-md mb-2"><?php echo $product->get_price_html(); ?></p>
-  
-            <?php
-            if ($product->is_type('simple')) {
-                echo '<div class="woocommerce">';
-                woocommerce_simple_add_to_cart();
-                echo '</div>';
-            } elseif ($product->is_type('variable')) {
-               echo '<div class="woocommerce">';
-            woocommerce_variable_add_to_cart();
-              echo '</div>';
 
-       
-            }
-            ?>
-          </div>
-        </div>
-        <?php
-      endwhile;
-    else :
-      echo '<p class="col-span-5 text-center text-gray-500">No products found.</p>';
-    endif;
-  
-    wp_reset_postdata();
-    return ob_get_clean();
-  }
-  
+
+
+
  
   add_action('wp_enqueue_scripts', function () {
     if (is_page() || is_singular()) {
@@ -603,7 +565,7 @@ remove_action( 'woocommerce_after_single_product_summary', 'woocommerce_output_r
 //add_action( 'woocommerce_after_single_product', 'load_custom_popular_picks_template', 15 );
 
 //function load_custom_popular_picks_template() {
-   // get_template_part( 'components/products-popular-picks' );
+   // get_template_part( 'components/products/popular-picks' );
 //}
 
 
@@ -1503,3 +1465,35 @@ add_action('template_redirect', function() {
     exit;
   }
 });
+
+
+// MUHSIL 
+
+
+// Enqueue SwiperJS assets
+function enqueue_swiper_assets() {
+    wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', [], null);
+    wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', [], null, true);
+}
+add_action('wp_enqueue_scripts', 'enqueue_swiper_assets');
+
+// AJAX lazy loader endpoint
+add_action('wp_ajax_load_section', 'lazy_load_template_section');
+add_action('wp_ajax_nopriv_load_section', 'lazy_load_template_section');
+
+function lazy_load_template_section() {
+    $template = sanitize_text_field($_GET['template'] ?? '');
+    if (!$template) {
+        wp_send_json_error('Template not provided');
+    }
+
+    // Prevent directory traversal
+    if (!preg_match('/^[a-zA-Z0-9\-\/]+$/', $template)) {
+        wp_send_json_error('Invalid template name');
+    }
+
+    ob_start();
+    get_template_part('components/' . $template);
+    echo ob_get_clean();
+    wp_die();
+}

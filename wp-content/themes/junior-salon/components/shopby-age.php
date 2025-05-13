@@ -1,79 +1,79 @@
 <?php
-// Get the parent category by slug
 $parent_cat = get_term_by('slug', 'age', 'product_cat');
 
 if ($parent_cat && !is_wp_error($parent_cat)) {
-    // Get subcategories
     $subcategories = get_terms([
         'taxonomy'   => 'product_cat',
         'hide_empty' => false,
         'parent'     => $parent_cat->term_id,
-        'number'     => 3, // Fetch only 3 subcategories
+        'number'     => 3,
     ]);
 
-    // Get thumbnail ID and image URL for the parent category ("Age")
     $thumbnail_id = get_term_meta($parent_cat->term_id, 'thumbnail_id', true);
     $image_url = wp_get_attachment_url($thumbnail_id);
 }
 ?>
-        <h2 class="text-3xl font-bold mb-6">Shop by Age</h2>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-  <!-- Left Column -->
-  <div class="space-y-6">
-    <!-- First Row: 2 Subcategories -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <?php if (!empty($subcategories) && count($subcategories) >= 2): ?>
-        <?php foreach (array_slice($subcategories, 0, 2) as $cat): ?>
-          <?php
-            // Get the image for the subcategory
-            $cat_thumbnail_id = get_term_meta($cat->term_id, 'thumbnail_id', true);
-            $cat_image_url = wp_get_attachment_url($cat_thumbnail_id);
-          ?>
-          <a href="<?php echo get_term_link($cat); ?>" class="relative block bg-gray-100 p-4 rounded-lg shadow hover:shadow-md transition">
-            <?php if ($cat_image_url): ?>
-              <img src="<?php echo esc_url($cat_image_url); ?>" alt="<?php echo esc_attr($cat->name); ?>" class="w-full h-48 object-cover rounded-lg mb-4">
-            <?php endif; ?>
-            <h3 class="text-lg font-semibold"><?php echo esc_html($cat->name); ?></h3>
-            <p class="text-sm text-gray-600"><?php echo esc_html($cat->description); ?></p>
-          </a>
-        <?php endforeach; ?>
+<section class="pt-[30px] px-[15px]">
+  <!-- Header -->
+  <div class="flex items-center justify-between border-b border-yellow-300 pb-2 mb-4">
+    <h2 class="text-base sm:text-lg md:text-xl font-semibold uppercase tracking-wide text-gray-800">Shop by Age</h2>
+    <a href="/products" class="text-sm font-semibold underline underline-offset-4 text-black hover:text-black transition">
+      Shop All
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-[15px]">
+    <!-- Left: Subcategory Images -->
+    <div class="flex flex-col gap-[15px] h-full">
+      <div class="grid grid-cols-2 gap-[15px] flex-1">
+        <?php if (!empty($subcategories)): ?>
+          <?php foreach (array_slice($subcategories, 0, 2) as $cat): ?>
+            <?php
+              $cat_thumbnail_id = get_term_meta($cat->term_id, 'thumbnail_id', true);
+              $cat_image_url = wp_get_attachment_url($cat_thumbnail_id);
+            ?>
+            <a href="<?php echo get_term_link($cat); ?>" class="block h-full w-full group">
+              <?php if ($cat_image_url): ?>
+                <img src="<?php echo esc_url($cat_image_url); ?>"
+                     alt="<?php echo esc_attr($cat->name); ?>"
+                     loading="lazy"
+                     class="w-full h-full object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-80" />
+              <?php endif; ?>
+            </a>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </div>
+
+      <?php if (!empty($subcategories) && count($subcategories) > 2): ?>
+        <?php $third_cat = $subcategories[2]; ?>
+        <?php
+          $third_cat_thumbnail_id = get_term_meta($third_cat->term_id, 'thumbnail_id', true);
+          $third_cat_image_url = wp_get_attachment_url($third_cat_thumbnail_id);
+        ?>
+        <a href="<?php echo get_term_link($third_cat); ?>" class="block w-full h-[200px] group">
+          <?php if ($third_cat_image_url): ?>
+            <img src="<?php echo esc_url($third_cat_image_url); ?>"
+                 alt="<?php echo esc_attr($third_cat->name); ?>"
+                 loading="lazy"
+                 class="w-full h-full object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-80" />
+          <?php endif; ?>
+        </a>
       <?php endif; ?>
     </div>
 
-    <!-- Second Row: 1 Subcategory -->
-    <?php if (!empty($subcategories) && count($subcategories) > 2): ?>
-      <?php $third_cat = $subcategories[2]; ?>
-      <?php
-        // Get the image for the third subcategory
-        $third_cat_thumbnail_id = get_term_meta($third_cat->term_id, 'thumbnail_id', true);
-        $third_cat_image_url = wp_get_attachment_url($third_cat_thumbnail_id);
-      ?>
-      <a href="<?php echo get_term_link($third_cat); ?>" class="relative block bg-gray-100 p-4 rounded-lg shadow hover:shadow-md transition">
-        <?php if ($third_cat_image_url): ?>
-          <img src="<?php echo esc_url($third_cat_image_url); ?>" alt="<?php echo esc_attr($third_cat->name); ?>" class="w-full h-48 object-cover rounded-lg mb-4">
-        <?php endif; ?>
-        <h3 class="text-lg font-semibold"><?php echo esc_html($third_cat->name); ?></h3>
-        <p class="text-sm text-gray-600"><?php echo esc_html($third_cat->description); ?></p>
+    <!-- Right: Parent Image -->
+    <?php if (!empty($image_url)): ?>
+      <a href="<?php echo get_term_link($parent_cat); ?>" class="block w-full h-full group">
+        <img src="<?php echo esc_url($image_url); ?>"
+             alt="<?php echo esc_attr($parent_cat->name); ?>"
+             loading="lazy"
+             class="w-full h-full object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-80" />
       </a>
+    <?php else: ?>
+      <div class="bg-gray-100 h-full flex items-center justify-center">
+        <p class="text-gray-500 text-sm">No image found for the "Age" category.</p>
+      </div>
     <?php endif; ?>
   </div>
-
-
-<?php if (!empty($image_url)): ?>
-  <div class="relative h-96 rounded-lg overflow-hidden">
-    <img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($parent_cat->name); ?>" class="w-full h-full object-cover" />
-    
-    <div class="absolute inset-0 bg-opacity-40 flex flex-col justify-center items-center text-center text-white px-4">
-      <h2 class="text-2xl font-bold mb-2"><?php echo esc_html($parent_cat->name); ?></h2>
-      <p class="text-sm max-w-md"><?php echo esc_html($parent_cat->description); ?></p>
-    </div>
-  </div>
-<?php else: ?>
-  <div class="bg-gray-100 h-96 flex items-center justify-center rounded-lg">
-    <p class="text-gray-500">No image found for the "Age" category.</p>
-  </div>
-<?php endif; ?>
-
-
-</div>
+</section>

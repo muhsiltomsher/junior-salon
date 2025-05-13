@@ -68,6 +68,6 @@ include get_template_directory() . '/layouts/header.php'; ?>
 </main>
 
 <?php 
-get_template_part( 'components/products-popular-picks' );
+get_template_part( 'components/products/popular-picks' );
 
 include get_template_directory() . '/layouts/footer.php'; ?>
