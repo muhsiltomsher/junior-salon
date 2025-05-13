@@ -1,7 +1,7 @@
 <?php
 /**
  * Product Upsell Component
- * Uses custom product card layout from components/product-card.php
+ * Uses custom product card layout from components/products/product-card.php
  *
  * @package junior-salon
  */
@@ -25,7 +25,7 @@ if (!empty($upsells)) :
 
         setup_postdata($GLOBALS['post'] =& $post_object);
         wc_setup_product_data($post_object);
-        get_template_part('components/product-card');
+        get_template_part('components/products/product-card');
       endforeach;
       wp_reset_postdata();
       ?>
