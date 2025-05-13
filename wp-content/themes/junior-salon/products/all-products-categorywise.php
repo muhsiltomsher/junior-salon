@@ -59,7 +59,7 @@ $loop = new WP_Query($args);
         global $product;
         setup_postdata($post);
         wc_setup_product_data($post);
-        get_template_part('components/product-card');
+        get_template_part('components/products/product-card');
     endwhile; ?>
 </div>
 
