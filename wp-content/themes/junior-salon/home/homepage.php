@@ -1,5 +1,5 @@
 <section id="shop">
-  <div class="container mx-auto text-center space-y-12">
+  <div class="container mx-auto text-center">
 
     <?php get_template_part('components/shopby-category'); ?>
     <?php get_template_part('components/shopby-brands'); ?>
