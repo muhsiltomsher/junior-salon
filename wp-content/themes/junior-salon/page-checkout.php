@@ -3,6 +3,20 @@
  * Template Name: Custom Checkout Page
  */
 include get_template_directory() . '/layouts/header.php'; ?>
+
+
+
+<?php
+$order_id = absint( get_query_var( 'order-received' ) );
+$order_key = isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : '';
+
+if ( $order_id && $order_key ) {
+    // This is the thank you page endpoint
+    wc_get_template( 'checkout/thankyou.php', array( 'order' => wc_get_order( $order_id ) ) );
+    return; // Stop further rendering of the checkout form
+}
+?>
+
   <h1 class="page-title"><?php the_title(); ?></h1>
 
 
@@ -130,32 +144,32 @@ $address_fields = array(
   <div id="shipping-msg" class="text-sm"></div>
 
   <div class="grid grid-cols-2 gap-3">
-    <input name="first_name" class="border px-3 py-2 text-sm rounded w-full"
+    <input name="shipping_first_name" class="border px-3 py-2 text-sm rounded w-full"
       value="<?php echo esc_attr($address_fields['first_name']); ?>" placeholder="First Name" required>
-    <input name="last_name" class="border px-3 py-2 text-sm rounded w-full"
+    <input name="shipping_last_name" class="border px-3 py-2 text-sm rounded w-full"
       value="<?php echo esc_attr($address_fields['last_name']); ?>" placeholder="Last Name" required>
   </div>
 
-  <input name="address_1" class="border px-3 py-2 text-sm rounded w-full"
+  <input name="shipping_address_1" class="border px-3 py-2 text-sm rounded w-full"
     value="<?php echo esc_attr($address_fields['address_1']); ?>" placeholder="Address Line 1" required>
 
-  <input name="address_2" class="border px-3 py-2 text-sm rounded w-full"
+  <input name="shipping_address_2" class="border px-3 py-2 text-sm rounded w-full"
     value="<?php echo esc_attr($address_fields['address_2']); ?>" placeholder="Address Line 2">
 
-  <input name="city" class="border px-3 py-2 text-sm rounded w-full"
+  <input name="shipping_city" class="border px-3 py-2 text-sm rounded w-full"
     value="<?php echo esc_attr($address_fields['city']); ?>" placeholder="City" required>
 
   <div class="grid grid-cols-2 gap-3">
-    <input name="state" class="border px-3 py-2 text-sm rounded w-full"
+    <input name="shipping_state" class="border px-3 py-2 text-sm rounded w-full"
       value="<?php echo esc_attr($address_fields['state']); ?>" placeholder="State">
-    <input name="postcode" class="border px-3 py-2 text-sm rounded w-full"
+    <input name="shipping_postcode" class="border px-3 py-2 text-sm rounded w-full"
       value="<?php echo esc_attr($address_fields['postcode']); ?>" placeholder="Postcode">
   </div>
 
-  <input name="country" class="border px-3 py-2 text-sm rounded w-full"
+  <input name="shipping_country" class="border px-3 py-2 text-sm rounded w-full"
     value="<?php echo esc_attr($address_fields['country']); ?>" placeholder="Country" required>
 
-  <input name="phone" class="border px-3 py-2 text-sm rounded w-full"
+  <input name="shipping_phone" class="border px-3 py-2 text-sm rounded w-full"
     value="<?php echo esc_attr($address_fields['phone']); ?>" placeholder="Phone">
 
   <div class="flex justify-end gap-3 mt-4">
@@ -188,11 +202,13 @@ function saveShippingAddress(e) {
       document.getElementById('shippingEditBox').classList.add('hidden');
   // ✅ Update UI dynamically (no reload)
       document.getElementById('shipping-display').innerHTML = `
-        ${form.first_name.value} ${form.last_name.value}<br>
-        ${form.address_1.value}<br>
-        ${form.city.value}, ${form.state.value}<br>
-        ${form.country.value}<br>
-        ${form.phone.value}
+        ${form.shipping_first_name.value} ${form.shipping_last_name.value}<br>
+        ${form.shipping_address_1.value}<br>
+        ${form.shipping_city.value}, ${form.shipping_state.value}<br>
+        ${form.shipping_address_2.value}<br>
+      
+              ${form.shipping_country.value}<br>
+        ${form.shipping_phone.value}
       `;
     } else {
       msgBox.className = "text-red-600";
@@ -251,18 +267,19 @@ $billing_fields = array(
     <div id="billing-msg" class="text-sm"></div>
 
     <div class="grid grid-cols-2 gap-3">
-      <input name="first_name" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['first_name']); ?>" placeholder="First Name" required>
-      <input name="last_name" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['last_name']); ?>" placeholder="Last Name" required>
+      <input name="billing_first_name" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['first_name']); ?>" placeholder="First Name" required>
+      <input name="billing_last_name" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['last_name']); ?>" placeholder="Last Name" required>
     </div>
-    <input name="address_1" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['address_1']); ?>" placeholder="Address Line 1" required>
-    <input name="address_2" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['address_2']); ?>" placeholder="Address Line 2">
-    <input name="city" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['city']); ?>" placeholder="City" required>
+    <input name="billing_address_1" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['address_1']); ?>" placeholder="Address Line 1" required>
+    <input name="billing_address_2" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['address_2']); ?>" placeholder="Address Line 2">
+    <input name="billing_city" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['city']); ?>" placeholder="City" required>
     <div class="grid grid-cols-2 gap-3">
-      <input name="state" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['state']); ?>" placeholder="State">
-      <input name="postcode" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['postcode']); ?>" placeholder="Postcode">
+      <input name="billing_state" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['state']); ?>" placeholder="State">
+      <input name="billing_postcode" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['postcode']); ?>" placeholder="Postcode">
     </div>
-    <input name="country" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['country']); ?>" placeholder="Country" required>
-    <input name="phone" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['phone']); ?>" placeholder="Phone">
+    <input name="billing_country" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['country']); ?>" placeholder="Country" required>
+    <input name="billing_phone" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['phone']); ?>" placeholder="Phone">
+  <input name="billing_email" value="<?php echo esc_attr($current_user->user_email); ?>">
 
     <div class="flex justify-end gap-3 mt-4">
       <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded hover:bg-blue-700">Save</button>
@@ -293,11 +310,11 @@ function saveBillingAddress(e) {
 
       // Update UI
       document.getElementById('billing-display').innerHTML = `
-        ${form.first_name.value} ${form.last_name.value}<br>
-        ${form.address_1.value}<br>
-        ${form.city.value}, ${form.state.value}<br>
-        ${form.country.value}<br>
-        ${form.phone.value}
+        ${form.billing_first_name.value} ${form.billing_last_name.value}<br>
+        ${form.billing_address_1.value}<br>        ${form.billing_address_2.value}<br>
+        ${form.billing_city.value}, ${form.billing_state.value}<br>
+        ${form.billing_postcode.value}<br> ${form.billing_country.value}<br> 
+        ${form.billing_phone.value}
       `;
     } else {
       msgBox.className = "text-red-600";
@@ -470,20 +487,48 @@ $has_shipping_fee = $shipping_total !== null && $shipping_total > 0;
     </div>
     <p class="text-xs text-gray-500">Duties and taxes included</p>
   </div>
-
+<div class="relative">
  <form name="checkout" method="post" class="checkout woocommerce-checkout" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
-  
+  <!-- Inside form.checkout before submit button -->
+<div style="display: none;">
+  <input type="text" name="billing_first_name">
+  <input type="text" name="billing_last_name">
+  <input type="text" name="billing_address_1">
+  <input type="text" name="billing_address_2">
+  <input type="text" name="billing_city">
+  <input type="text" name="billing_state">
+  <input type="text" name="billing_postcode">
+  <input type="text" name="billing_country">
+  <input type="text" name="billing_phone">
+  <input type="email" name="billing_email">
+</div>
+<!-- Hidden shipping fields (required by WooCommerce) -->
+<div style="display: none;">
+  <input type="text" name="shipping_first_name">
+  <input type="text" name="shipping_last_name">
+  <input type="text" name="shipping_address_1">
+  <input type="text" name="shipping_address_2">
+  <input type="text" name="shipping_city">
+  <input type="text" name="shipping_state">
+  <input type="text" name="shipping_postcode">
+  <input type="text" name="shipping_country">
+  <input type="text" name="shipping_phone">
+</div>
+
   <div class="hidden">
     <?php
     do_action( 'woocommerce_checkout_before_customer_details' );
-    do_action( 'woocommerce_checkout_billing' );
-    do_action( 'woocommerce_checkout_shipping' );
+   // do_action( 'woocommerce_checkout_billing' );
+   // do_action( 'woocommerce_checkout_shipping' );
     do_action( 'woocommerce_checkout_after_customer_details' );
     do_action( 'woocommerce_checkout_before_order_review' );
     do_action( 'woocommerce_checkout_order_review' );
     do_action( 'woocommerce_checkout_after_order_review' );
     ?>
   </div>
+<div id="order-loader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+  <div class="animate-spin rounded-full h-8 w-8 border-2 border-gray-800 border-t-transparent"></div>
+</div>
 
   <!-- ✅ Your custom visible Place Order button -->
   <button type="submit"
@@ -491,12 +536,20 @@ $has_shipping_fee = $shipping_total !== null && $shipping_total > 0;
     Place Order
   </button>
 </form>
-
 </div>
+</div>
+
 
 
 <script>
 document.getElementById('finalPlaceOrder')?.addEventListener('click', function () {
+
+   const loader = document.getElementById('order-loader');
+  if (loader) loader.classList.remove('hidden');
+
+  // Disable form elements
+  this.querySelectorAll('input, button, select, textarea').forEach(el => el.disabled = true);
+
   document.querySelector('form.checkout')?.requestSubmit(); // Modern & safe
 });
 </script>
@@ -530,6 +583,56 @@ document.getElementById('apply-coupon-form')?.addEventListener('submit', functio
 });
 </script>
 
+<script>
+document.querySelector('form.checkout').addEventListener('submit', function () {
+  const shippingForm = document.getElementById('shippingEditBox');
+  if (shippingForm) {
+    const shippingFields = [
+      'shipping_first_name',
+      'shipping_last_name',
+      'shipping_address_1',
+      'shipping_address_2',
+      'shipping_city',
+      'shipping_state',
+      'shipping_postcode',
+      'shipping_country',
+      'shipping_phone'
+    ];
+
+    shippingFields.forEach(field => {
+      const from = shippingForm.querySelector(`[name="${field}"]`);
+      const to = this.querySelector(`[name="${field}"]`);
+      if (from && to) {
+        to.value = from.value;
+      }
+    });
+  }
+
+  const billingForm = document.getElementById('billingEditBox');
+  if (billingForm) {
+    const billingFields = [
+      'billing_first_name',
+      'billing_last_name',
+      'billing_address_1',
+      'billing_address_2',
+      'billing_city',
+      'billing_state',
+      'billing_postcode',
+      'billing_country',
+      'billing_phone',
+      'billing_email'
+    ];
+
+    billingFields.forEach(field => {
+      const from = billingForm.querySelector(`[name="${field}"]`);
+      const to = this.querySelector(`[name="${field}"]`);
+      if (from && to) {
+        to.value = from.value;
+      }
+    });
+  }
+});
+</script>
 
 <?php include get_template_directory() . '/layouts/footer.php'; ?>
 
