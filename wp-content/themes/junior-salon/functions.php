@@ -1497,3 +1497,4 @@ function lazy_load_template_section() {
     echo ob_get_clean();
     wp_die();
 }
+

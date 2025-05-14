@@ -18,6 +18,13 @@ global $product;
     <h1 class="product-title text-2xl font-bold text-gray-900 relative z-10 opacity-0 transition-opacity duration-500">
       <?php the_title(); ?>
     </h1>
+
+      <?php
+  $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
+  if (!empty($brands) && !is_wp_error($brands)) {
+      echo '<div class="text-xs text-center text-gray-500 mt-2">' . esc_html($brands[0]->name) . '</div>';
+  }
+  ?>
   </div>
 
   <!-- Product Price with Skeleton -->
@@ -28,6 +35,9 @@ global $product;
     </div>
   </div>
 </div>
+
+
+
 
 <!-- Enqueue script or inline -->
 <script>
