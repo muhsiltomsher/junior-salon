@@ -1,97 +1,118 @@
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
-    <meta charset="<?php bloginfo( 'charset' ); ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php bloginfo( 'name' ); ?> - <?php bloginfo( 'description' ); ?></title>
+  <meta charset="<?php bloginfo('charset'); ?>">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><?php wp_title('|', true, 'right'); ?><?php bloginfo('name'); ?></title>
 
-    <!-- Google Fonts: Instrument Sans Only -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Critical Inline Styles -->
+  <style>
+    .logo img { max-width: 150px; height: auto; }
+    header.sticky { position: sticky; top: 0; z-index: 50; }
+    .text-sm { font-size: 0.875rem; }
+    .font-semibold { font-weight: 600; }
+    body { font-family: 'Instrument Sans', sans-serif; }
+  </style>
 
-    <?php wp_head(); ?>
+  <!-- Preload Critical Assets -->
+  <link rel="preload" href="<?php echo esc_url(get_template_directory_uri()); ?>/dist/styles.css" as="style">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <?php wp_head(); ?>
 </head>
-<body <?php body_class(); ?>>
+<body <?php body_class(); ?> class="transition-opacity duration-300">
 
 <!-- Top Bar -->
 <div class="bg-white w-full py-2 shadow-md">
-    <div class="max-w-7xl mx-auto flex justify-between items-center px-4 sm:px-6 lg:px-8">
-        <!-- Tagline -->
-        <div class="text-gray-800 text-sm font-semibold">
-            <?php echo esc_html(get_theme_mod('top_bar_tagline', 'Super Save')); ?>
-        </div>
-
-        <!-- Shop Now Link -->
-        <div>
-            <a href="<?php echo esc_url(get_theme_mod('top_bar_shop_url', home_url('/shop'))); ?>" class="text-blue-600 hover:text-blue-800 font-semibold text-sm transition-all duration-300">
-                Shop Now
-            </a>
-        </div>
-
-        <!-- Deal Timer -->
-        <div id="deal-timer" class="text-gray-700 text-sm font-medium">
-            <span id="timer"></span>
-        </div>
+  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center px-4 sm:px-6 lg:px-8 gap-2">
+    <div class="text-gray-800 text-sm font-semibold">
+      <?php echo esc_html(get_theme_mod('top_bar_tagline', 'Super Save')); ?>
     </div>
+    <div class="flex items-center gap-4">
+      <a href="<?php echo esc_url(get_theme_mod('top_bar_shop_url', home_url('/shop'))); ?>" 
+         class="text-blue-600 hover:text-blue-800 font-semibold text-sm transition-colors">
+        Shop Now
+      </a>
+      <div id="deal-timer" class="text-gray-700 text-sm font-medium">
+        <span id="timer"></span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script>
-    // Deal Timer Function
-    function startDealTimer() {
-        const durationInHours = <?php echo get_theme_mod('top_bar_timer_duration', 10); ?>;
-        const endTime = new Date().getTime() + (durationInHours * 60 * 60 * 1000);
-        const timerElement = document.getElementById('timer');
-
-        function updateTimer() {
-            const now = new Date().getTime();
-            const timeLeft = endTime - now;
-
-            if (timeLeft <= 0) {
-                timerElement.textContent = "Deal Expired";
-                clearInterval(interval);
-                return;
+<!-- Sticky Header -->
+<header class="sticky top-0 z-50 bg-white shadow-sm">
+  <div class="bg-black">
+    <div class="container mx-auto flex justify-between items-center py-2 px-4">
+      <!-- Logo -->
+      <div class="logo flex items-center">
+        <a href="<?php echo esc_url(home_url('/')); ?>" class="block">
+          <?php 
+            if (has_custom_logo()) {
+              $logo_id = get_theme_mod('custom_logo');
+              $logo_url = wp_get_attachment_image_src($logo_id, 'medium')[0];
+              $webp_url = str_replace(['.jpg', '.png'], '.webp', $logo_url);
+              ?>
+              <picture>
+                <source srcset="<?php echo esc_url($webp_url); ?>" type="image/webp">
+                <img src="<?php echo esc_url($logo_url); ?>" 
+                     alt="<?php echo esc_attr(get_bloginfo('name')); ?>" 
+                     class="w-auto max-w-[150px] h-auto" 
+                     loading="eager">
+              </picture>
+              <?php
+            } else {
+              ?>
+              <h1 class="text-2xl font-bold text-white"><?php echo esc_html(get_bloginfo('name')); ?></h1>
+              <?php
             }
+          ?>
+        </a>
+      </div>
 
-            const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
-            const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
-            const seconds = Math.floor((timeLeft / 1000) % 60);
+      <!-- Navigation Icons -->
+      <div class="flex items-center space-x-4 text-white text-sm">
+        <?php get_template_part('layouts/navigation'); ?>
+      </div>
+    </div>
+  </div>
 
-            timerElement.textContent = `${hours}hr : ${minutes}min : ${seconds}sec`;
-        }
+  <div class="bg-white">
+    <div class="max-w-7xl mx-auto flex justify-center items-center py-2 px-4">
+      <?php get_template_part('layouts/mainmenu'); ?>
+    </div>
+  </div>
+</header>
 
-        updateTimer();
-        const interval = setInterval(updateTimer, 1000);
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Deal Timer
+    const durationInHours = <?php echo absint(get_theme_mod('top_bar_timer_duration', 10)); ?>;
+    const endTime = localStorage.getItem('dealEndTime') || (new Date().getTime() + durationInHours * 3600000);
+    localStorage.setItem('dealEndTime', endTime);
+    const timerElement = document.getElementById('timer');
+
+    function updateTimer() {
+      const now = new Date().getTime();
+      const timeLeft = endTime - now;
+
+      if (timeLeft <= 0) {
+        timerElement.textContent = 'Deal Expired';
+        localStorage.removeItem('dealEndTime');
+        return;
+      }
+
+      const hours = Math.floor(timeLeft / 3600000);
+      const minutes = Math.floor((timeLeft % 3600000) / 60000);
+      const seconds = Math.floor((timeLeft % 60000) / 1000);
+      timerElement.textContent = `${hours}hr : ${minutes}min : ${seconds}sec`;
     }
 
-    document.addEventListener('DOMContentLoaded', startDealTimer);
+    if (timerElement) {
+      updateTimer();
+      setInterval(updateTimer, 1000);
+    }
+  });
 </script>
-
-<!-- Sticky Header -->
-<header class="sticky top-0 z-50 shadow-lg">
-    <div class="bg-black w-full">
-        <div class="container mx-auto flex justify-between items-center py-2 px-2">
-            <!-- Logo -->
-            <div class="logo flex items-center">
-                <?php 
-                if (has_custom_logo()) {
-                    $custom_logo_id = get_theme_mod('custom_logo');
-                    $logo_url = wp_get_attachment_image_url($custom_logo_id, 'full');
-                    echo '<img src="' . esc_url($logo_url) . '" alt="' . get_bloginfo('name') . '" class="h-16 w-30">';
-                } else {
-                    echo '<h1 class="text-3xl font-bold text-white">' . get_bloginfo('name') . '</h1>';
-                }
-                ?>
-            </div>
-            <!-- Right Side: Navigation Icons -->
-            <div class="flex items-center space-x-6 text-white text-sm">
-                <?php get_template_part('layouts/navigation'); ?>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white w-full shadow-sm">
-        <div class="container mx-auto flex justify-center items-center py-2 px-2">
-            <?php get_template_part('layouts/mainmenu'); ?>
-        </div>
-    </div>
-</header>
