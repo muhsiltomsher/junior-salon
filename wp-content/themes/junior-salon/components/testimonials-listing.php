@@ -1,8 +1,8 @@
-<section class="pt-[30px] px-[15px]">
+<section class="pt-[30px] pb-[50px] px-[15px]">
   <h2 class="text-center text-[15px] uppercase font-normal tracking-widest mb-1">Testimonials</h2>
   <h3 class="text-center text-lg uppercase sm:text-3xl font-bold mb-10 mt-0">Customer Experiences</h3>
 
-  <div class="max-w-screen-xl mx-auto">
+  <div class="mx-auto">
     <div id="testimonial-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px]">
       <?php
       $query = new WP_Query([
