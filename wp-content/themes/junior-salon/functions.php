@@ -1498,3 +1498,84 @@ function lazy_load_template_section() {
     wp_die();
 }
 
+add_action('wp_ajax_update_billing_address', function () {
+    $user_id = get_current_user_id();
+    if (!$user_id) wp_send_json_error(['message' => 'Unauthorized']);
+
+    $fields = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone'];
+    foreach ($fields as $field) {
+        update_user_meta($user_id, 'billing_' . $field, sanitize_text_field($_POST[$field] ?? ''));
+    }
+
+    wp_send_json_success(['message' => 'Billing address updated successfully.']);
+});
+
+add_action('wp_ajax_update_shipping_address', function () {
+    $user_id = get_current_user_id();
+    if (!$user_id) wp_send_json_error(['message' => 'Unauthorized']);
+
+    $fields = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone'];
+    foreach ($fields as $field) {
+        update_user_meta($user_id, 'shipping_' . $field, sanitize_text_field($_POST[$field] ?? ''));
+    }
+
+    wp_send_json_success(['message' => 'Shipping address updated successfully.']);
+});
+
+add_action('wp_ajax_update_bank_details', function () {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => 'Not logged in.']);
+    }
+
+    update_user_meta($user_id, 'bank_name', sanitize_text_field($_POST['bank_name']));
+    update_user_meta($user_id, 'account_number', sanitize_text_field($_POST['account_number']));
+    update_user_meta($user_id, 'iban_number', sanitize_text_field($_POST['iban_number']));
+
+    wp_send_json_success(['message' => 'Bank details updated successfully.']);
+});
+add_action('wp_ajax_update_account_password', function () {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => 'Not logged in.']);
+    }
+
+    $current_password = $_POST['current_password'];
+    $new_password     = $_POST['new_password'];
+    $confirm_password = $_POST['confirm_password'];
+
+    if (!$current_password || !$new_password || !$confirm_password) {
+        wp_send_json_error(['message' => 'All fields are required.']);
+    }
+
+    $user = get_user_by('id', $user_id);
+
+    if (!wp_check_password($current_password, $user->user_pass, $user_id)) {
+        wp_send_json_error(['message' => 'Current password is incorrect.']);
+    }
+
+    if ($new_password !== $confirm_password) {
+        wp_send_json_error(['message' => 'New passwords do not match.']);
+    }
+
+    wp_set_password($new_password, $user_id);
+
+    wp_send_json_success(['message' => 'Password changed successfully. Please log in again.']);
+});
+function load_font_awesome_for_account_icons() {
+    wp_enqueue_style('font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
+}
+add_action('wp_enqueue_scripts', 'load_font_awesome_for_account_icons');
+add_action('wp_ajax_update_user_profile', function () {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => 'You are not logged in.']);
+    }
+
+    $phone = sanitize_text_field($_POST['phone'] ?? '');
+
+    update_user_meta($user_id, 'billing_phone', $phone);
+    update_user_meta($user_id, 'shipping_phone', $phone); // Optional sync
+
+    wp_send_json_success(['message' => 'Profile updated successfully.']);
+});
