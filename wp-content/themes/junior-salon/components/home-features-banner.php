@@ -5,7 +5,7 @@ $feature_banner = get_field('feature_banner', $home_page_id);
 $feature_banner_url = $feature_banner['url'];
 ?>
 
-<section class="pt-[30px] px-[15px] relative">
+<section class="mt-[30px] px-[15px] relative">
   <!-- Background Image -->
   <div class="absolute inset-0 bg-cover bg-center z-0" style="background-image: url('<?php echo esc_url($feature_banner_url); ?>');"></div>
   <!-- Dark Overlay -->
