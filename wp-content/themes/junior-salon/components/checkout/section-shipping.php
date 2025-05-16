@@ -41,7 +41,7 @@ $address_fields = [
     <?php endif; ?>
   </div>
 
-  <form id="shippingEditBox" class="hidden mt-6 space-y-4" onsubmit="return saveShippingAddress(event)">
+  <form id="shippingEditBox" class=" <?php echo $is_logged_in ? 'hidden' : ''; ?> mt-6 space-y-4" onsubmit="return saveShippingAddress(event)">
     <div id="shipping-msg" class="text-sm"></div>
 
     <div class="grid grid-cols-2 gap-3">

@@ -1331,48 +1331,119 @@ add_action('woocommerce_created_customer', function ($customer_id) {
 });
 
 
-
 add_action('wp_ajax_save_shipping_address', 'ajax_save_shipping_address');
-function ajax_save_shipping_address() {
-  if (!is_user_logged_in()) {
-    wp_send_json_error(['message' => 'Not logged in']);
-  }
+add_action('wp_ajax_nopriv_save_shipping_address', 'ajax_save_shipping_address');
 
-  $user_id = get_current_user_id();
-  $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
+function ajax_save_shipping_address() {
+  $fields = [
+    'shipping_first_name',
+    'shipping_last_name',
+    'shipping_company',
+    'shipping_address_1',
+    'shipping_address_2',
+    'shipping_city',
+    'shipping_state',
+    'shipping_postcode',
+    'shipping_country',
+    'shipping_phone'
+  ];
+
+  $updated = false;
 
   foreach ($fields as $field) {
-    if (isset($_POST[$field])) {
-      update_user_meta($user_id, 'shipping_' . $field, sanitize_text_field($_POST[$field]));
+    if (!isset($_POST[$field])) continue;
+
+    $value = sanitize_text_field($_POST[$field]);
+
+    if (is_user_logged_in()) {
+      update_user_meta(get_current_user_id(), $field, $value);
     }
+
+    // Store in WooCommerce session for guest checkout
+    $key = str_replace('shipping_', '', $field);
+    WC()->customer->{"set_shipping_{$key}"}($value);
+
+    $updated = true;
   }
 
-  wp_send_json_success();
+  if ($updated) {
+    wp_send_json_success(['message' => 'Shipping address saved']);
+  } else {
+    wp_send_json_error(['message' => 'No valid fields to save']);
+  }
 }
 add_action('wp_ajax_save_billing_address', 'ajax_save_billing_address');
+add_action('wp_ajax_nopriv_save_billing_address', 'ajax_save_billing_address');
+
 function ajax_save_billing_address() {
-  if (!is_user_logged_in()) wp_send_json_error(['message' => 'Not logged in']);
-  $user_id = get_current_user_id();
-  $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
+  $fields = [
+    'billing_first_name',
+    'billing_last_name',
+    'billing_company',
+    'billing_address_1',
+    'billing_address_2',
+    'billing_city',
+    'billing_state',
+    'billing_postcode',
+    'billing_country',
+    'billing_phone',
+    'billing_email'
+  ];
+
+  $updated = false;
+
   foreach ($fields as $field) {
-    if (isset($_POST[$field])) {
-      update_user_meta($user_id, 'billing_' . $field, sanitize_text_field($_POST[$field]));
+    if (!isset($_POST[$field])) continue;
+
+    $value = ($field === 'billing_email')
+      ? sanitize_email($_POST[$field])
+      : sanitize_text_field($_POST[$field]);
+
+    $short_key = str_replace('billing_', '', $field);
+
+    // Always set Woo session (this is what WC validates)
+    WC()->customer->{"set_billing_{$short_key}"}($value);
+
+    // Save to user meta if logged in
+    if (is_user_logged_in()) {
+      update_user_meta(get_current_user_id(), $field, $value);
     }
+
+    $updated = true;
   }
-  wp_send_json_success();
+
+  if ($updated) {
+    wp_send_json_success(['message' => 'Billing address updated']);
+  } else {
+    wp_send_json_error(['message' => 'No valid fields received']);
+  }
 }
 
+
 add_action('wp_ajax_get_shipping_address', 'ajax_get_shipping_address');
+add_action('wp_ajax_nopriv_get_shipping_address', 'ajax_get_shipping_address');
+
 function ajax_get_shipping_address() {
-  if (!is_user_logged_in()) wp_send_json_error(['message' => 'Not logged in']);
-  $user_id = get_current_user_id();
   $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
   $data = [];
-  foreach ($fields as $field) {
-    $data[$field] = get_user_meta($user_id, 'shipping_' . $field, true);
+
+  if (is_user_logged_in()) {
+    $user_id = get_current_user_id();
+    foreach ($fields as $field) {
+      $data[$field] = get_user_meta($user_id, 'shipping_' . $field, true);
+    }
+  } else {
+    // Guest fallback: use WooCommerce session data
+    foreach ($fields as $field) {
+      $method = "get_shipping_{$field}";
+      $data[$field] = WC()->customer->$method();
+    }
   }
+
   wp_send_json_success($data);
 }
+
+
 add_action('wp_ajax_woocommerce_update_payment_method', function () {
   if (isset($_POST['payment_method'])) {
     WC()->session->set('chosen_payment_method', sanitize_text_field($_POST['payment_method']));
@@ -1579,3 +1650,230 @@ add_action('wp_ajax_update_user_profile', function () {
 
     wp_send_json_success(['message' => 'Profile updated successfully.']);
 });
+
+
+/**
+ * ===========================================
+ * Force custom template for product_cat archive pages
+ * ===========================================
+ */
+add_filter('template_include', function ($template) {
+    if (is_tax('product_cat')) {
+        $custom_template = get_theme_file_path('taxonomy-product_cat.php');
+        if (file_exists($custom_template)) {
+            return $custom_template;
+        }
+    }
+    return $template;
+}, 99);
+
+
+
+/**
+ * Register REST API to fetch all available WooCommerce coupons
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('custom/v1', '/coupons', [
+        'methods'  => 'GET',
+        'callback' => 'get_available_coupons',
+        'permission_callback' => '__return_true',
+    ]);
+});
+
+
+
+/**
+ * ===========================================
+ * Force custom template for product_brand archive pages
+ * ===========================================
+ */
+add_filter('template_include', function ($template) {
+    if (is_tax('product_brand')) {
+        $custom_template = get_theme_file_path('taxonomy-product_brand.php');
+        if (file_exists($custom_template)) {
+            return $custom_template;
+        }
+    }
+    return $template;
+}, 99);
+
+
+
+function get_available_coupons() {
+    $args = [
+        'post_type'      => 'shop_coupon',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+    ];
+
+    $coupons = get_posts($args);
+    $data = [];
+
+    foreach ($coupons as $post) {
+        $code       = strtoupper(get_the_title($post));
+        $amount     = get_post_meta($post->ID, 'coupon_amount', true);
+        $type       = get_post_meta($post->ID, 'discount_type', true);
+        $free_ship  = get_post_meta($post->ID, 'free_shipping', true);
+        $desc       = $post->post_excerpt ?: $post->post_content;
+
+        $data[] = [
+            'code'          => $code,
+            'amount'        => $amount,
+            'type'          => $type,
+            'description'   => $desc,
+            'free_shipping' => $free_ship === 'yes',
+        ];
+    }
+
+    return rest_ensure_response($data);
+}
+
+
+
+
+/**
+ * AJAX handler for applying coupon to WooCommerce cart
+ */
+add_action('wp_ajax_apply_coupon_ajax', 'apply_coupon_ajax_handler');
+add_action('wp_ajax_nopriv_apply_coupon_ajax', 'apply_coupon_ajax_handler');
+
+function apply_coupon_ajax_handler() {
+    // Security check
+    if (!check_ajax_referer('apply_coupon_nonce', 'security', false)) {
+        wp_send_json_error(['message' => 'Security check failed.']);
+    }
+
+    // Ensure WooCommerce cart is initialized
+    if (!WC()->cart) {
+        wp_send_json_error(['message' => 'Cart not initialized.']);
+    }
+
+    // Sanitize and validate coupon code
+    $coupon_code = sanitize_text_field($_POST['coupon_code'] ?? '');
+    if (empty($coupon_code)) {
+        wp_send_json_error(['message' => 'Please enter a coupon code.']);
+    }
+
+    try {
+        $coupon_code = wc_format_coupon_code($coupon_code);
+
+        // Remove any previously applied coupons
+        foreach (WC()->cart->get_applied_coupons() as $applied_code) {
+            WC()->cart->remove_coupon($applied_code);
+        }
+
+        // Try to apply the new coupon
+        $applied = WC()->cart->apply_coupon($coupon_code);
+
+        if (is_wp_error($applied)) {
+            wp_send_json_error(['message' => $applied->get_error_message()]);
+        }
+
+        if (!$applied) {
+            $notices = wc_get_notices('error');
+            wc_clear_notices();
+            $message = !empty($notices) ? wp_strip_all_tags($notices[0]['notice']) : 'Invalid or expired coupon.';
+            wp_send_json_error(['message' => $message]);
+        }
+
+        // Update cart totals after applying the coupon
+        WC()->cart->calculate_totals();
+        wc_clear_notices();
+
+        // Get HTML fragments for updated totals
+        ob_start();
+        wc_cart_totals_subtotal_html();
+        $subtotal_html = ob_get_clean();
+
+        ob_start();
+        wc_cart_totals_shipping_html();
+        $shipping_html = ob_get_clean();
+
+        ob_start();
+        wc_cart_totals_order_total_html();
+        $total_html = ob_get_clean();
+
+        ob_start();
+        foreach (WC()->cart->get_coupons() as $code => $coupon) {
+            echo wc_price(WC()->cart->get_coupon_discount_amount($code));
+        }
+        $discount_html = ob_get_clean();
+
+        // Return success response with updated totals
+        wp_send_json_success([
+            'message'   => 'Coupon applied successfully!',
+            'subtotal'  => $subtotal_html,
+            'shipping'  => $shipping_html,
+            'discount'  => $discount_html,
+            'total'     => $total_html,
+        ]);
+
+    } catch (Exception $e) {
+        error_log('Coupon Error: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'An error occurred while applying the coupon.']);
+    }
+}
+
+
+
+/**
+ * Output global AJAX vars for frontend JS
+ */
+add_action('wp_footer', function () {
+    if (!is_admin()) {
+        ?>
+        <script>
+            var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+            var apply_coupon_nonce = "<?php echo wp_create_nonce('apply_coupon_nonce'); ?>";
+        </script>
+        <?php
+    }
+});
+
+
+
+
+
+
+/**
+ * Register REST API to Fetch Available Coupons
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('custom/v1', '/coupons', [
+        'methods'  => 'GET',
+        'callback' => 'get_available_coupons',
+        'permission_callback' => '__return_true',
+    ]);
+});
+
+if (!function_exists('get_available_coupons')) {
+    function get_available_coupons() {
+        $args = [
+            'post_type'      => 'shop_coupon',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+        ];
+
+        $coupons = get_posts($args);
+        $data = [];
+
+        foreach ($coupons as $post) {
+            $code       = strtoupper(get_the_title($post));
+            $amount     = get_post_meta($post->ID, 'coupon_amount', true);
+            $type       = get_post_meta($post->ID, 'discount_type', true);
+            $free_ship  = get_post_meta($post->ID, 'free_shipping', true);
+            $desc       = $post->post_excerpt ?: $post->post_content;
+
+            $data[] = [
+                'code'          => $code,
+                'amount'        => $amount,
+                'type'          => $type,
+                'description'   => $desc,
+                'free_shipping' => $free_ship === 'yes',
+            ];
+        }
+
+        return rest_ensure_response($data);
+    }
+}
+
