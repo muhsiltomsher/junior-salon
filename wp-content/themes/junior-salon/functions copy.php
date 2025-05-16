@@ -1727,6 +1727,34 @@ function custom_ajax_move_to_wishlist() {
 add_action('wp_ajax_move_to_wishlist', 'custom_ajax_move_to_wishlist');
 add_action('wp_ajax_nopriv_move_to_wishlist', 'custom_ajax_move_to_wishlist');
 
+
+
+
+
+
+
+/**
+ * ===========================================
+ * Force custom template for product_cat archive pages
+ * ===========================================
+ */
+add_filter('template_include', function ($template) {
+    if (is_tax('product_cat')) {
+        $custom_template = get_theme_file_path('taxonomy-product_cat.php');
+        if (file_exists($custom_template)) {
+            return $custom_template;
+        }
+    }
+    return $template;
+}, 99);
+
+
+
+
+
+
+
+
 /**
  * Toggle Wishlist
  */
@@ -1939,6 +1967,25 @@ add_action('rest_api_init', function () {
     ]);
 });
 
+
+
+/**
+ * ===========================================
+ * Force custom template for product_brand archive pages
+ * ===========================================
+ */
+add_filter('template_include', function ($template) {
+    if (is_tax('product_brand')) {
+        $custom_template = get_theme_file_path('taxonomy-product_brand.php');
+        if (file_exists($custom_template)) {
+            return $custom_template;
+        }
+    }
+    return $template;
+}, 99);
+
+
+
 function get_available_coupons() {
     $args = [
         'post_type'      => 'shop_coupon',
@@ -2116,4 +2163,7 @@ if (!function_exists('get_available_coupons')) {
         return rest_ensure_response($data);
     }
 }
+
+
+
 
