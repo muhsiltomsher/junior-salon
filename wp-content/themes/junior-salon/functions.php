@@ -1354,11 +1354,10 @@ function ajax_save_shipping_address() {
     if (!isset($_POST[$field])) continue;
 
     $value = sanitize_text_field($_POST[$field]);
-
-    if (is_user_logged_in()) {
-      update_user_meta(get_current_user_id(), $field, $value);
-    }
-
+    
+if (is_user_logged_in()) {
+    update_user_meta(get_current_user_id(), 'default_shipping_index', 'default');
+}
     // Store in WooCommerce session for guest checkout
     $key = str_replace('shipping_', '', $field);
     WC()->customer->{"set_shipping_{$key}"}($value);
@@ -1875,5 +1874,129 @@ if (!function_exists('get_available_coupons')) {
 
         return rest_ensure_response($data);
     }
+}
+
+add_action('wp_ajax_custom_lost_password', 'custom_lost_password_handler');
+add_action('wp_ajax_nopriv_custom_lost_password', 'custom_lost_password_handler');
+
+function custom_lost_password_handler() {
+    check_ajax_referer('lost_password', 'woocommerce-lost-password-nonce');
+
+    $email = sanitize_email($_POST['user_login']);
+    $user = get_user_by('email', $email);
+
+    if ($user) {
+        // Native WordPress function that triggers email
+        $result = retrieve_password($user->user_login);
+
+        if ($result === true) {
+            wp_send_json_success('A reset link has been sent to your email.');
+        } else {
+            wp_send_json_error('Could not send reset email. Please try again.');
+        }
+    } else {
+        wp_send_json_error('Invalid email address.');
+    }
+}
+add_filter('retrieve_password_message', 'custom_reset_password_email_link', 10, 4);
+
+function custom_reset_password_email_link($message, $key, $user_login, $user_data) {
+    $default_url = network_site_url("wp-login.php?action=rp&key=$key&login=" . rawurlencode($user_login), 'login');
+    $custom_url  = site_url('/reset-password/') . '?key=' . urlencode($key) . '&login=' . urlencode($user_login);
+
+    // Replace the default URL with your custom one
+    $message = str_replace($default_url, $custom_url, $message);
+
+    return $message;
+}
+add_filter('retrieve_password_title', function($title, $user_login, $user_data) {
+    return 'Reset Your Password for Junior Salon';
+}, 10, 3);
+add_filter('retrieve_password_message', function($message, $key, $user_login, $user_data) {
+    $reset_url = site_url('/reset-password/') . '?key=' . urlencode($key) . '&login=' . urlencode($user_login);
+
+    $site_name = get_bloginfo('name');
+    $user_email = $user_data->user_email;
+
+    $custom_message = <<<EOT
+Hi {$user_login},
+
+We received a request to reset your password for your account at {$site_name}.
+
+Click the link below to set a new password:
+{$reset_url}
+
+If you didn’t request this change, you can safely ignore this email — your password will remain the same.
+
+This request was made for the account associated with:
+Email: {$user_email}
+Site: {$site_name}
+
+Thank you,  
+The {$site_name} Team
+EOT;
+
+    return $custom_message;
+}, 10, 4);
+
+add_action('wp_ajax_add_shipping_address', 'save_additional_shipping_address');
+function save_additional_shipping_address() {
+    $user_id = get_current_user_id();
+    if (!$user_id) wp_send_json_error(['message' => 'You must be logged in.']);
+
+    $fields = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone'];
+    $address_data = [];
+
+    foreach ($fields as $field) {
+        $address_data[$field] = sanitize_text_field($_POST[$field] ?? '');
+    }
+
+    // Save to a meta field like "additional_shipping_addresses"
+    $existing = get_user_meta($user_id, 'additional_shipping_addresses', true);
+    if (!is_array($existing)) $existing = [];
+
+    $existing[] = $address_data;
+    update_user_meta($user_id, 'additional_shipping_addresses', $existing);
+
+    wp_send_json_success(['message' => 'Shipping address added successfully.']);
+}
+add_action('wp_ajax_edit_additional_shipping_address', 'edit_additional_shipping_address');
+function edit_additional_shipping_address() {
+    $user_id = get_current_user_id();
+    $index = isset($_POST['index']) ? intval($_POST['index']) : -1;
+
+    if (!$user_id || $index < 0) {
+        wp_send_json_error(['message' => 'Invalid request.']);
+    }
+
+    $addresses = get_user_meta($user_id, 'additional_shipping_addresses', true);
+    if (!is_array($addresses) || !array_key_exists($index, $addresses)) {
+        wp_send_json_error(['message' => 'Address not found.']);
+    }
+
+    $fields = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone'];
+    foreach ($fields as $field) {
+        $addresses[$index][$field] = sanitize_text_field($_POST[$field] ?? '');
+    }
+
+    update_user_meta($user_id, 'additional_shipping_addresses', $addresses);
+    wp_send_json_success(['message' => 'Shipping address updated successfully.']);
+}
+
+add_action('wp_ajax_set_default_shipping_address', 'set_default_shipping_address');
+function set_default_shipping_address() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => 'You must be logged in.']);
+    }
+
+    $index = sanitize_text_field($_POST['index'] ?? '');
+    // Validate: either "default" or numeric index
+    if ($index !== 'default' && !is_numeric($index)) {
+        wp_send_json_error(['message' => 'Invalid address index.']);
+    }
+
+    update_user_meta($user_id, 'default_shipping_index', $index);
+    wp_send_json_success(['message' => 'Default shipping address updated.']);
 }
 
