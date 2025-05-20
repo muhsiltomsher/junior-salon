@@ -2000,3 +2000,32 @@ function set_default_shipping_address() {
     wp_send_json_success(['message' => 'Default shipping address updated.']);
 }
 
+// Remove item from cart
+add_action('wp_ajax_remove_cart_item', 'remove_cart_item_handler');
+add_action('wp_ajax_nopriv_remove_cart_item', 'remove_cart_item_handler');
+
+function remove_cart_item_handler() {
+    if (isset($_POST['cart_item_key'])) {
+        $cart_item_key = sanitize_text_field($_POST['cart_item_key']);
+        WC()->cart->remove_cart_item($cart_item_key);
+        wp_send_json_success(); // Send success response
+    } else {
+        wp_send_json_error(array('message' => 'Failed to remove item.'));
+    }
+}
+
+
+// Update Cart Item Quantity
+add_action('wp_ajax_update_cart_item', 'update_cart_item_handler');
+add_action('wp_ajax_nopriv_update_cart_item', 'update_cart_item_handler');
+
+function update_cart_item_handler() {
+    if (isset($_POST['cart_item_key']) && isset($_POST['quantity'])) {
+        $cart_item_key = sanitize_text_field($_POST['cart_item_key']);
+        $quantity = absint($_POST['quantity']);
+        WC()->cart->set_quantity($cart_item_key, $quantity);
+        wp_send_json_success(); // Send success response
+    } else {
+        wp_send_json_error(array('message' => 'Failed to update item.'));
+    }
+}

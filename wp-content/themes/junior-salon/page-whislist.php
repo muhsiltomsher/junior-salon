@@ -5,7 +5,8 @@
 defined('ABSPATH') || exit;
 include get_template_directory() . '/layouts/header.php';
 
-$wishlist_items = get_custom_wishlist_items();
+// Fetch the current user's wishlist items using YITH WooCommerce Wishlist API
+//$wishlist_items = YITH_WCWL()->get_wishlist();
 ?>
 
 <div class="wishlist-page bg-gray-50 min-h-screen">
@@ -13,13 +14,18 @@ $wishlist_items = get_custom_wishlist_items();
     <!-- Left: Wishlist Products -->
     <div class="lg:col-span-2 space-y-6">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-gray-800">MY WISHLIST (<span class="wishlist-count"><?php echo count($wishlist_items); ?></span> ITEMS)</h2>
+        <h2 class="text-xl font-bold text-gray-800">MY WISHLIST (<span class="wishlist-count"><?php //echo count($wishlist_items); ?></span> ITEMS)</h2>
         <a href="<?php echo esc_url(wc_get_page_permalink('shop')); ?>" class="text-xs text-gray-500 hover:text-gray-700 underline transition-colors">&larr; Continue shopping</a>
       </div>
 
-      <div id="wishlist-items">
-        <?php
-        if (empty($wishlist_items)) {
+
+<?php echo do_shortcode('[yith_wcwl_wishlist]'); ?>
+
+
+
+ 
+        <?php   
+      /*     <div id="wishlist-items">   if (empty($wishlist_items)) {
           echo '<p class="text-center text-gray-500 py-6 text-sm">Your wishlist is empty.</p>';
         } else {
           foreach ($wishlist_items as $item) {
@@ -79,7 +85,7 @@ $wishlist_items = get_custom_wishlist_items();
           <img src="<?php echo get_template_directory_uri(); ?>/assets/img/gpay.svg" alt="Google Pay" class="h-5">
           <img src="<?php echo get_template_directory_uri(); ?>/assets/img/applepay.svg" alt="Apple Pay" class="h-5">
         </div>
-      </div>
+      </div>  */ ?>
     </div>
   </div>
 </div>
