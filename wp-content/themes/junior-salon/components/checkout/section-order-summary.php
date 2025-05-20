@@ -58,7 +58,33 @@ $has_shipping_fee = $shipping_total !== null && $shipping_total > 0;
   <!-- Checkout Form Submit -->
   <div class="relative">
     <form name="checkout" method="post" class="checkout woocommerce-checkout" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data">
-      <div class="hidden">
+    
+     <!-- Inside form.checkout before submit button -->
+<div style="display: none;">
+  <input type="text" name="billing_first_name">
+  <input type="text" name="billing_last_name">
+  <input type="text" name="billing_address_1">
+  <input type="text" name="billing_address_2">
+  <input type="text" name="billing_city">
+  <input type="text" name="billing_state">
+  <input type="text" name="billing_postcode">
+  <input type="text" name="billing_country">
+  <input type="text" name="billing_phone">
+  <input type="email" name="billing_email">
+</div>
+<!-- Hidden shipping fields (required by WooCommerce) -->
+<div style="display: none;">
+  <input type="text" name="shipping_first_name">
+  <input type="text" name="shipping_last_name">
+  <input type="text" name="shipping_address_1">
+  <input type="text" name="shipping_address_2">
+  <input type="text" name="shipping_city">
+  <input type="text" name="shipping_state">
+  <input type="text" name="shipping_postcode">
+  <input type="text" name="shipping_country">
+  <input type="text" name="shipping_phone">
+</div>
+    <div class="hidden">
         <?php
         do_action( 'woocommerce_checkout_before_customer_details' );
         do_action( 'woocommerce_checkout_after_customer_details' );
@@ -78,7 +104,18 @@ $has_shipping_fee = $shipping_total !== null && $shipping_total > 0;
     </form>
   </div>
 </div>
+<script>
+document.getElementById('finalPlaceOrder')?.addEventListener('click', function () {
 
+   const loader = document.getElementById('order-loader');
+  if (loader) loader.classList.remove('hidden');
+
+  // Disable form elements
+  this.querySelectorAll('input, button, select, textarea').forEach(el => el.disabled = true);
+
+  document.querySelector('form.checkout')?.requestSubmit(); // Modern & safe
+});
+</script>
 <script>
 document.getElementById('apply-coupon-form')?.addEventListener('submit', function (e) {
   e.preventDefault();
@@ -101,5 +138,55 @@ document.getElementById('apply-coupon-form')?.addEventListener('submit', functio
       msg.innerHTML = '<div class="text-red-600 text-sm">' + (data.data.message || 'Invalid coupon') + '</div>';
     }
   });
+});
+</script>
+<script>
+document.querySelector('form.checkout').addEventListener('submit', function () {
+  const shippingForm = document.getElementById('shippingEditBox');
+  if (shippingForm) {
+    const shippingFields = [
+      'shipping_first_name',
+      'shipping_last_name',
+      'shipping_address_1',
+      'shipping_address_2',
+      'shipping_city',
+      'shipping_state',
+      'shipping_postcode',
+      'shipping_country',
+      'shipping_phone'
+    ];
+
+    shippingFields.forEach(field => {
+      const from = shippingForm.querySelector(`[name="${field}"]`);
+      const to = this.querySelector(`[name="${field}"]`);
+      if (from && to) {
+        to.value = from.value;
+      }
+    });
+  }
+
+  const billingForm = document.getElementById('billingEditBox');
+  if (billingForm) {
+    const billingFields = [
+      'billing_first_name',
+      'billing_last_name',
+      'billing_address_1',
+      'billing_address_2',
+      'billing_city',
+      'billing_state',
+      'billing_postcode',
+      'billing_country',
+      'billing_phone',
+      'billing_email'
+    ];
+
+    billingFields.forEach(field => {
+      const from = billingForm.querySelector(`[name="${field}"]`);
+      const to = this.querySelector(`[name="${field}"]`);
+      if (from && to) {
+        to.value = from.value;
+      }
+    });
+  }
 });
 </script>

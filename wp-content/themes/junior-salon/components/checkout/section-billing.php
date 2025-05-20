@@ -45,7 +45,7 @@ $billing_fields = array(
     <?php endif; ?>
   </div>
 
-  <form id="billingEditBox" class="hidden mt-6 space-y-4" onsubmit="return saveBillingAddress(event)">
+  <form id="billingEditBox" class="<?php echo $is_logged_in ? 'hidden' : ''; ?> mt-6 space-y-4" onsubmit="return saveBillingAddress(event)">
     <div id="billing-msg" class="text-sm"></div>
 
     <div class="grid grid-cols-2 gap-3">
@@ -61,7 +61,12 @@ $billing_fields = array(
     </div>
     <input name="billing_country" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['country']); ?>" placeholder="Country" required>
     <input name="billing_phone" class="border px-3 py-2 text-sm rounded w-full" value="<?php echo esc_attr($billing_fields['phone']); ?>" placeholder="Phone">
-    <input name="billing_email" value="<?php echo esc_attr($current_user->user_email); ?>" type="hidden">
+   
+   <?php if (!$is_logged_in): ?>
+  <input name="billing_email" class="border px-3 py-2 text-sm rounded w-full" placeholder="Email" required>
+<?php else: ?>
+  <input type="hidden" name="billing_email" value="<?php echo esc_attr($current_user->user_email); ?>">
+<?php endif; ?>
 
     <div class="flex justify-end gap-3 mt-4">
       <button type="submit" class="bg-blue-600 text-white text-sm px-4 py-2 rounded hover:bg-blue-700">Save</button>
@@ -69,10 +74,10 @@ $billing_fields = array(
     </div>
   </form>
 </div>
-
 <script>
 function saveBillingAddress(e) {
   e.preventDefault();
+
   const form = document.getElementById('billingEditBox');
   const formData = new FormData(form);
   formData.append('action', 'save_billing_address');
@@ -85,9 +90,11 @@ function saveBillingAddress(e) {
   .then(res => res.json())
   .then(data => {
     const msgBox = document.getElementById('billing-msg');
+    console.log('Server response:', data); // 👈 log response for debugging
+
     if (data.success) {
       msgBox.className = "text-green-600";
-      msgBox.innerText = "Billing address updated!";
+      msgBox.innerText = data.data?.message || "Billing address updated!";
       document.getElementById('billingEditBox').classList.add('hidden');
       document.getElementById('billing-display').innerHTML = `
         ${form.billing_first_name.value} ${form.billing_last_name.value}<br>
@@ -99,12 +106,20 @@ function saveBillingAddress(e) {
         ${form.billing_phone.value}
       `;
     } else {
+      const errorMsg = data.data?.message || "Failed to update. Please try again.";
       msgBox.className = "text-red-600";
-      msgBox.innerText = data.message || "Failed to update.";
+      msgBox.innerText = errorMsg;
+      alert("Error: " + errorMsg); // 👈 show popup for clarity
     }
+  })
+  .catch(error => {
+    console.error('AJAX error:', error);
+    alert('Unexpected error. Please check console.');
   });
+
   return false;
 }
+
 
 // Copy shipping to billing if checkbox is clicked
 const checkbox = document.getElementById('sameAsShipping');

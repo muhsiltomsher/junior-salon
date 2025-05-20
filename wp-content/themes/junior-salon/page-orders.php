@@ -85,7 +85,8 @@ $customer_orders = wc_get_orders($args);
                         </div>
                         <div class="text-right">
                             <p class="text-sm text-gray-700 mb-2">Total: <span class="font-medium"><?php echo $total; ?></span></p>
-                            <a href="<?php echo esc_url($order->get_view_order_url()); ?>"
+                         <a href="<?php echo esc_url(site_url('/order-details') . '?order_id=' . $order->get_id()); ?>"
+
                                class="inline-block px-4 py-1.5 bg-black text-white text-xs uppercase rounded hover:bg-gray-800 transition">
                                 View order details
                             </a>

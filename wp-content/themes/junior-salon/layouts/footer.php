@@ -76,19 +76,7 @@
       <h3 class="text-xl font-semibold mb-2">Newsletter</h3>
       <p class="text-sm text-gray-300 mb-4">Subscribe to get notified about product launches, special offers and company news.</p>
 
-      <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="POST" class="flex" x-data="newsletterForm" @submit.prevent="submitForm">
-        <input type="email" name="email" placeholder="your-email@example.com"
-               class="flex-1 px-4 py-2 rounded-l-md border-none text-black focus:ring-2 focus:ring-yellow-400"
-               x-model="email" required>
-        <input type="hidden" name="action" value="newsletter_subscribe">
-        <?php wp_nonce_field('newsletter_subscribe', 'newsletter_nonce'); ?>
-        <button type="submit"
-                class="bg-yellow-400 text-black font-semibold px-4 py-2 rounded-r-md hover:bg-yellow-300 transition-colors"
-                :disabled="submitting"
-                x-text="submitting ? 'Subscribing...' : '→'">
-          →
-        </button>
-      </form>
+ <?php echo do_shortcode('[wpforms id="573"]'); ?>
     </div>
   </div>
 

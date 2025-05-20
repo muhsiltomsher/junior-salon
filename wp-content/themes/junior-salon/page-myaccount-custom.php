@@ -20,6 +20,7 @@ include get_template_directory() . '/layouts/header.php';
                     <i class="fas fa-box"></i> My Orders</a></li>
                     <li><a href="?section=profile" class="flex items-center gap-2 hover:text-blue-600">
     <i class="fas fa-id-badge"></i> My Profile</a></li>
+     
                 <li><a href="?section=address" class="flex items-center gap-2 hover:text-blue-600">
                     <i class="fas fa-map-marker-alt"></i> My Address Book</a></li>
                 <li><a href="?section=bank-details" class="flex items-center gap-2 hover:text-blue-600">

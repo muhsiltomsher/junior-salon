@@ -75,13 +75,14 @@ if (!WC()->cart->is_empty()) {
                     <img src="<?php echo get_template_directory_uri(); ?>/assets/images/icons/remove-icon.svg" alt="Remove" class="w-4 h-4" />
                     Remove
                 </button>
-                <button type="button"
-                        class="wishlist-toggle flex items-center bg-white gap-2 border border-black text-black text-[14px] px-4 py-2 transition-all hover:bg-yellow-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                        data-product-id="<?php echo esc_attr($product_id); ?>"
-                        data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
-                    <img src="<?php echo get_template_directory_uri(); ?>/assets/images/icons/heart-icon.svg" alt="Wishlist" class="w-4 h-4" />
-                    Move To Wishlist
-                </button>
+<button type="button"
+        class="wishlist-toggle flex items-center bg-white gap-2 border border-black text-black text-[14px] px-4 py-2 transition-all hover:bg-yellow-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        data-product-id="<?php echo esc_attr($product_id); ?>"
+        data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
+    <img src="<?php echo get_template_directory_uri(); ?>/assets/images/icons/heart-icon.svg" alt="Wishlist" class="w-4 h-4" />
+    Move To Wishlist
+</button>
+
             </div>
         </div>
     </div>
@@ -93,38 +94,15 @@ if (!WC()->cart->is_empty()) {
     echo '<p class="text-center text-gray-500 py-6 text-sm">Your cart is empty.</p>';
 }
 ?>
-
-
-
+<script>
+var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+var cart_nonce = '<?php echo wp_create_nonce('cart_nonce'); ?>';
+</script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
     const $cartItems = document.querySelector('#cart-items');
-
     if (!$cartItems) return;
-
-    const debounce = (func, wait) => {
-        let timeout;
-        return (...args) => {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func(...args), wait);
-        };
-    };
-
-    const handleAjax = (action, data, onSuccess) => {
-        fetch(ajaxurl, {
-            method: 'POST',
-            body: new URLSearchParams({
-                ...data,
-                action,
-                security: cart_nonce
-            }),
-        })
-        .then(res => res.json())
-        .then(response => {
-            if (response.success && onSuccess) onSuccess(response);
-        });
-    };
 
     $cartItems.addEventListener('click', function (e) {
         const target = e.target.closest('button');
@@ -133,29 +111,62 @@ if (!WC()->cart->is_empty()) {
         const key = target.dataset.key;
         const item = target.closest('.cart-item');
 
+        // Move to wishlist
+        if (target.classList.contains('wishlist-toggle')) {
+            const productId = target.dataset.productId;
+            handleAjax('move_to_wishlist', { cart_item_key: key, product_id: productId }, (response) => {
+                if (response.success) {
+                    item.remove(); // Remove the item from the cart UI
+                } else {
+                    alert('Failed to move item to wishlist.');
+                }
+            });
+        }
+
+        // Update quantity (increase/decrease)
         if (target.dataset.action === 'increase' || target.dataset.action === 'decrease') {
             let qty = parseInt(item.querySelector('[data-quantity]').innerText);
             if (target.dataset.action === 'increase') qty++;
             if (target.dataset.action === 'decrease' && qty > 1) qty--;
-
-            handleAjax('update_cart_item', { cart_item_key: key, quantity: qty }, () => {
-                item.querySelector('[data-quantity]').innerText = qty;
+            
+            handleAjax('update_cart_item', { cart_item_key: key, quantity: qty }, (response) => {
+                if (response.success) {
+                    item.querySelector('[data-quantity]').innerText = qty;
+                } else {
+                    alert('Failed to update quantity.');
+                }
             });
         }
 
+        // Remove item from cart
         if (target.dataset.action === 'remove') {
-            handleAjax('remove_cart_item', { cart_item_key: key }, () => {
-                item.remove();
-            });
-        }
-
-        if (target.classList.contains('wishlist-toggle')) {
-            const productId = target.dataset.productId;
-            handleAjax('move_to_wishlist', { cart_item_key: key, product_id: productId }, () => {
-                item.remove();
+            handleAjax('remove_cart_item', { cart_item_key: key }, (response) => {
+                if (response.success) {
+                    item.remove();
+                } else {
+                    alert('Failed to remove item.');
+                }
             });
         }
     });
 });
+
+function handleAjax(action, data, onSuccess) {
+    fetch(ajaxurl, {
+        method: 'POST',
+        body: new URLSearchParams({
+            ...data,
+            action: action,
+            security: cart_nonce // This nonce should be generated and passed correctly
+        }),
+    })
+    .then(res => res.json())
+    .then(response => {
+        if (response.success && onSuccess) onSuccess(response);
+    })
+    .catch(error => {
+        console.error('AJAX request failed:', error);
+    });
+}
 
 </script>
