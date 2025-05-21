@@ -736,7 +736,15 @@ function woocommerce_price_filter_shortcode() {
 add_shortcode('price_filter', 'woocommerce_price_filter_shortcode');
 
 
+add_action('wp_ajax_load_sort_drawer_content', 'load_sort_drawer_content');
+add_action('wp_ajax_nopriv_load_sort_drawer_content', 'load_sort_drawer_content');
 
+function load_sort_drawer_content() {
+    ob_start();
+    get_template_part('products/sort-drawer');
+    echo ob_get_clean();
+    wp_die();
+}
 
 
 
@@ -758,9 +766,11 @@ function load_filter_drawer_content() {
 }
 add_action('wp_footer', function () {
     if (!is_admin()) {
-        echo '<script>var ajaxurl = "' . admin_url('admin-ajax.php') . '";</script>';
+        $ajax_url = admin_url('admin-ajax.php');
+        echo '<script>var ajaxurl = "' . esc_url($ajax_url) . '";</script>';
     }
 });
+
 
 add_action('wp_ajax_filter_products', 'filter_products_callback');
 add_action('wp_ajax_nopriv_filter_products', 'filter_products_callback');
@@ -2027,5 +2037,48 @@ function update_cart_item_handler() {
         wp_send_json_success(); // Send success response
     } else {
         wp_send_json_error(array('message' => 'Failed to update item.'));
+    }
+}
+class Custom_Mega_Menu_Walker extends Walker_Nav_Menu {
+    function start_lvl( &$output, $depth = 0, $args = null ) {
+        $indent = str_repeat("\t", $depth);
+
+        if ( $depth === 0 ) {
+            // Full-width dropdown
+            $output .= "\n$indent<div class=\"absolute left-0 top-full w-screen bg-white shadow-xl z-50 hidden group-hover:block\">\n";
+            $output .= "<div class=\"max-w-[1300px] mx-auto grid grid-cols-4 gap-8 p-8\">\n";
+        } else {
+            $output .= "\n$indent<ul class=\"mt-2 space-y-2\">\n";
+        }
+    }
+
+    function end_lvl( &$output, $depth = 0, $args = null ) {
+        if ( $depth === 0 ) {
+            $output .= "</div></div>\n"; // close grid and outer div
+        } else {
+            $output .= "</ul>\n";
+        }
+    }
+
+    function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
+        $classes = implode(' ', $item->classes ?? []);
+        $is_active = strpos($classes, 'current-menu-item') !== false;
+
+        if ( $depth === 0 ) {
+            $output .= '<li class="relative group">';
+            $output .= '<a href="' . esc_url($item->url) . '" class="inline-block px-4 py-2 text-sm font-semibold text-white hover:text-yellow-400 transition">';
+            $output .= esc_html($item->title);
+            $output .= '</a>';
+        } else {
+            $output .= '<div>';
+            $output .= '<a href="' . esc_url($item->url) . '" class="block text-sm text-gray-700 hover:text-yellow-600 font-medium">';
+            $output .= esc_html($item->title);
+            $output .= '</a>';
+            $output .= '</div>';
+        }
+
+        if ( $depth === 0 ) {
+            $output .= '</li>';
+        }
     }
 }
