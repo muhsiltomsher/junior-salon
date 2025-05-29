@@ -16,7 +16,7 @@ $attributes = $is_variable ? $product->get_variation_attributes() : [];
 
 <div class="overflow-hidden flex flex-col relative group border border-gray-200">
   <!-- Image Block -->
-  <div class="relative block w-full aspect-[4/6]  overflow-hidden">
+  <div class="relative block w-full aspect-[4/6] overflow-hidden">
     <!-- Skeleton -->
     <div class="absolute inset-0 bg-gray-200 animate-pulse z-0"></div>
 
@@ -53,38 +53,59 @@ $attributes = $is_variable ? $product->get_variation_attributes() : [];
     </button>
 
     <!-- Hover Content -->
-    <div class="absolute shadow  bottom-0 left-0 right-0 bg-white/95 text-black py-3 px-[10px] opacity-0 translate-y-full group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20">
+    <div class="absolute shadow bottom-0 left-0 right-0 bg-white/95 text-black py-3 px-[10px] opacity-0 translate-y-full group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20">
       <?php if ($is_variable && !empty($attributes)): ?>
-        <?php foreach ($attributes as $attr_key => $options): ?>
-          <div class="mb-1 text-[10px] font-semibold uppercase"><?php echo wc_attribute_label($attr_key); ?></div>
-          <div class="flex flex-wrap justify-center gap-[8px] variation-hover-form mb-[10px]"
-              data-variations='<?php echo wp_json_encode($variations); ?>'
-              data-attr-key="<?php echo esc_attr($attr_key); ?>">
-            <?php foreach ($options as $opt): ?>
-              <label class="cursor-pointer transition">
-                <input type="radio" name="hover_attribute_<?php echo esc_attr($attr_key); ?>"
-                       value="<?php echo esc_attr($opt); ?>" class="sr-only peer">
-                <span class="px-[10px] py-1 border border-gray-400 rounded-full text-[10px] uppercase text-black peer-checked:bg-[#DEAF27] peer-checked:text-white peer-checked:border-[#DEAF27] transition">
-                  <?php echo esc_html($opt); ?>
-                </span>
-              </label>
-            <?php endforeach; ?>
+        <form class="variation-cart-form flex flex-col w-full max-w-[300px] mx-auto mt-4 gap-2" 
+              method="post" 
+              action="<?php echo esc_url(apply_filters('woocommerce_add_to_cart_form_action', $product->get_permalink())); ?>"
+              data-product_id="<?php echo esc_attr($product->get_id()); ?>"
+              data-product_variations='<?php echo wc_esc_json(wp_json_encode($variations)); ?>'>
+          
+          <!-- Attributes -->
+          <?php foreach ($attributes as $attr_key => $options): ?>
+            <div class="mb-1 text-[10px] font-semibold uppercase"><?php echo wc_attribute_label($attr_key); ?></div>
+            <div class="flex flex-wrap justify-center gap-[8px] variation-hover-form mb-[10px]"
+                 data-attribute-name="<?php echo esc_attr($attr_key); ?>">
+              <?php foreach ($options as $opt): ?>
+                <label class="cursor-pointer transition">
+                  <input type="radio" name="attribute_<?php echo esc_attr($attr_key); ?>"
+                         value="<?php echo esc_attr($opt); ?>" 
+                         class="sr-only peer">
+                  <span class="px-[10px] py-1 border border-gray-400 rounded-full text-[10px] uppercase text-black peer-checked:bg-[#DEAF27] peer-checked:text-white peer-checked:border-[#DEAF27] transition">
+                    <?php echo esc_html($opt); ?>
+                  </span>
+                </label>
+              <?php endforeach; ?>
+            </div>
+          <?php endforeach; ?>
+
+          <!-- Hidden Fields -->
+          <input type="hidden" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>">
+          <input type="hidden" name="product_id" value="<?php echo esc_attr($product->get_id()); ?>">
+          <input type="hidden" name="variation_id" value="" class="variation-id-field">
+          <input type="hidden" name="quantity" value="1">
+
+          <!-- Buttons -->
+          <div class="flex gap-2">
+         <button type="button" 
+        class="flex-1 text-xs uppercase px-4 py-1.5 bg-black text-white border border-black hover:bg-transparent hover:text-black transition add-to-cart-btn"
+        data-type="add">Add to Cart</button>
+            <button type="submit"
+                    formaction="<?php echo esc_url(wc_get_checkout_url()); ?>"
+                    class="flex-1 text-xs uppercase px-4 py-1.5 bg-black text-white border border-black hover:bg-transparent hover:text-black transition add-to-cart-btn"
+                    data-type="buy">Buy Now</button>
           </div>
-        <?php endforeach; ?>
-        <form class="variation-cart-form flex w-full max-w-[300px] mx-auto mt-4 gap-2" method="post">
-          <input type="hidden" name="variation_id" value="">
-          <button type="submit" class="flex-1 text-xs uppercase px-4 py-1.5 bg-black text-white border border-black hover:bg-transparent hover:text-black transition add-to-cart-btn" data-type="add">Add to Cart</button>
-          <button type="submit" class="flex-1 text-xs uppercase px-4 py-1.5 bg-black text-white border border-black hover:bg-transparent hover:text-black transition add-to-cart-btn" data-type="buy">Buy Now</button>
         </form>
       <?php elseif ($product->is_type('simple')): ?>
         <form class="cart flex w-full max-w-[300px] mx-auto mt-2 gap-2" method="post">
           <input type="hidden" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>" />
-          <button type="submit" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>"
+          <input type="hidden" name="quantity" value="1">
+          <button type="submit"
                   class="flex-1 text-xs uppercase px-4 py-1.5 bg-black text-white border border-black hover:bg-transparent hover:text-black transition">
             Add to Cart
           </button>
-          <button type="submit" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>"
-                  formaction="<?php echo esc_url(wc_get_cart_url()); ?>"
+          <button type="submit"
+                  formaction="<?php echo esc_url(wc_get_checkout_url()); ?>"
                   class="flex-1 text-xs uppercase px-4 py-1.5 bg-black text-white border border-black hover:bg-transparent hover:text-black transition">
             Buy Now
           </button>
@@ -112,74 +133,147 @@ $attributes = $is_variable ? $product->get_variation_attributes() : [];
   <div class="text-sm text-center font-bold text-gray-900 mb-2">
     <?php echo $product->get_price_html(); ?>
   </div>
-</div>
+</div><script>
+jQuery(function($) {
+    $('.variation-cart-form').each(function() {
+        const form = $(this);
+        const variationInput = form.find('.variation-id-field');
+        const variations = JSON.parse(form.attr('data-product_variations'));
 
-<script>
-jQuery(document).ready(function($) {
-  // Handle variation selection
-  $(document).on('change', '.variation-hover-form input[type="radio"]', function() {
-    const $form = $(this).closest('.variation-hover-form');
-    const selectedValue = $(this).val();
-    const variations = $form.data('variations');
-    const attrKey = $form.data('attr-key');
-    const matched = variations.find(v => v.attributes[attrKey] === selectedValue);
+        const updateVariation = () => {
+           // alert('🔁 updateVariation triggered');
 
-    if (matched) {
-      $form.closest('.variation-cart-form').find('input[name="variation_id"]').val(matched.variation_id);
-    }
-  });
+            const selected = {};
+            const checkedInputs = form.find('input[type="radio"]:checked');
 
-  // AJAX Add to Cart
-  $(document).on('submit', '.variation-cart-form', function(e) {
+            checkedInputs.each(function() {
+                const name = $(this).attr('name');
+                const value = $(this).val();
+                selected[name] = value;
+            //    alert(`✔️ Selected: ${name} = ${value}`);
+            });
+
+         //   alert(`📦 Selected Attributes:\n${JSON.stringify(selected, null, 2)}`);
+
+            // Match variation
+            const matched = variations.find(v => {
+                return Object.entries(selected).every(([key, val]) => {
+                    return v.attributes[key] === val || v.attributes[key] === '';
+                });
+            });
+
+            if (matched) {
+                variationInput.val(matched.variation_id);
+           //     alert('✅ Matched Variation ID: ' + matched.variation_id);
+            } else {
+                variationInput.val('');
+             //   alert('❌ No matching variation found.');
+            }
+
+            // Update attribute availability
+            form.find('.variation-hover-form').each(function() {
+                const attrName = $(this).data('attribute-name');
+                const selectName = `attribute_${attrName}`;
+                const options = $(this).find('label');
+
+                options.each(function() {
+                    const val = $(this).find('input').val();
+                    const isAvailable = variations.some(v => {
+                        return v.is_in_stock &&
+                            Object.entries(selected).every(([k, vval]) => {
+                                if (k === selectName) return true;
+                                return v.attributes[k] === vval || v.attributes[k] === '';
+                            }) &&
+                            (v.attributes[selectName] === val || v.attributes[selectName] === '');
+                    });
+
+                    $(this).toggleClass('opacity-50 cursor-not-allowed', !isAvailable);
+                    $(this).find('input').prop('disabled', !isAvailable);
+                });
+            });
+        };
+
+        // Bind attribute change
+        form.find('input[type="radio"]').on('change', function() {
+            const name = $(this).attr('name');
+            if (name.includes('attribute_pa_color')) {
+                form.find('input[name^="attribute_pa_size"]').prop('checked', false)
+                    .closest('label').removeClass('peer-checked:bg-[#DEAF27] peer-checked:text-white');
+             //   alert('🎨 Color changed. Reset size.');
+            }
+            updateVariation();
+        });
+
+        // Handle form submission
+form.find('.add-to-cart-btn[data-type="add"]').off('click').on('click', function(e) {
+
     e.preventDefault();
-    const form = $(this);
-    const variationId = form.find('input[name="variation_id"]').val();
-    const isBuyNow = $(document.activeElement).data('type') === 'buy';
+            const variationId = variationInput.val();
+           // const isBuyNow = $(document.activeElement).data('type') === 'buy';
+            const totalAttrs = form.find('.variation-hover-form').length;
+            const selectedAttrs = form.find('input[type="radio"]:checked').length;
 
-    if (!variationId) {
-      alert('Please select a size first.');
-      return;
-    }
+          //  alert(`🛒 Submitting:\nVariation ID: ${variationId}\nSelected: ${selectedAttrs}/${totalAttrs}`);
 
-    $.ajax({
-      url: wc_add_to_cart_params.ajax_url,
-      type: 'POST',
-      data: {
-        action: 'woocommerce_ajax_add_to_cart',
-        product_id: <?php echo absint($product->get_id()); ?>,
-        variation_id: variationId,
-        quantity: 1
-      },
-      success: function(response) {
-        if (response && response.fragments) {
-          $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, variationId]);
-          if (isBuyNow) {
-            window.location.href = wc_add_to_cart_params.cart_url;
-          }
+            if (!variationId || selectedAttrs < totalAttrs) {
+             //   alert('⚠️ Please select all required attributes.');
+                return;
+            }
+
+            const data = {
+                action: 'woocommerce_ajax_add_to_cart',
+                product_id: form.data('product_id'),
+                variation_id: variationId,
+                quantity: 1,
+                security: '<?php echo wp_create_nonce("add-to-cart"); ?>'
+            };
+
+            form.find('input[type="radio"]:checked').each(function() {
+                data[$(this).attr('name')] = $(this).val();
+            });
+
+          //  alert(`📤 AJAX Payload:\n${JSON.stringify(data, null, 2)}`);
+
+            $.ajax({
+                url: wc_add_to_cart_params.ajax_url,
+                type: 'POST',
+                data: data,
+                beforeSend: function() {
+                   form.find('.add-to-cart-btn[data-type="add"]').prop('disabled', true).text('Adding...');
+         },
+                  success: function(response) {
+            if (response.success) {
+                $(document.body).trigger('added_to_cart', [response.data.fragments, response.data.cart_hash]);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error(error);
+        },
+            
+                complete: function() {
+            form.find('.add-to-cart-btn[data-type="add"]').prop('disabled', false).text('Add to Cart');
         }
-      },
-      error: function() {
-        alert('There was an error adding the product to the cart.');
-      }
+            });
+        });
+
+        // Init
+        updateVariation();
     });
-  });
 
-  // Wishlist toggle
-  $(document).on('click', '.wishlist-toggle', function() {
-    const $svg = $(this).find('svg');
-    const $btn = $(this);
-    const isActive = $svg.hasClass('text-pink-500');
+    // Wishlist toggle
+    $('.wishlist-toggle').on('click', function() {
+        const $svg = $(this).find('svg');
+        const active = $svg.hasClass('text-pink-500');
+        $svg.addClass('scale-150');
+        setTimeout(() => $svg.removeClass('scale-150'), 150);
 
-    $svg.addClass('scale-150');
-    setTimeout(() => $svg.removeClass('scale-150'), 150);
-
-    if (isActive) {
-      $svg.removeClass('text-pink-500 stroke-pink-500').addClass('text-transparent stroke-black');
-      $btn.removeClass('border-pink-500').addClass('border-gray-300');
-    } else {
-      $svg.removeClass('text-transparent stroke-black').addClass('text-pink-500 stroke-pink-500');
-      $btn.removeClass('border-gray-300').addClass('border-pink-500');
-    }
-  });
+        if (active) {
+            $svg.removeClass('text-pink-500 stroke-pink-500').addClass('text-transparent stroke-black');
+            $(this).removeClass('border-pink-500').addClass('border-gray-300');
+        } else {
+            $svg.removeClass('text-transparent stroke-black').addClass('text-pink-500 stroke-pink-500');
+            $(this).removeClass('border-gray-300').addClass('border-pink-500');
+        }
+    });
 });
 </script>

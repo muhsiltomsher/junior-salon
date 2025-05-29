@@ -5,12 +5,19 @@ set_time_limit(300); // 300 seconds = 5 minutes
 // Increase memory limit
 ini_set('memory_limit', '256M'); // Adjust to your needs
 
-
+function mytheme_enqueue_scripts() {
+    wp_enqueue_script('jquery');
+    if (!is_admin()) {
+        wp_localize_script('jquery', 'ajax_params', [
+            'ajaxurl' => admin_url('admin-ajax.php')
+        ]);
+    }
+}
+add_action('wp_enqueue_scripts', 'mytheme_enqueue_scripts');
 // Enqueue Tailwind CSS and other styles
 function junior_salon_enqueue_styles() {
     wp_enqueue_style('tailwindcss', get_template_directory_uri() . '/dist/styles.css', [], null);
 }
-
 add_action('wp_enqueue_scripts', 'junior_salon_enqueue_styles');
 add_action('admin_menu', function() {
     add_menu_page(
@@ -196,19 +203,30 @@ function mytheme_customize_register_top_bar($wp_customize) {
         'type'     => 'url',
     ));
 
-    // Timer duration setting (in hours)
-    $wp_customize->add_setting('top_bar_timer_duration', array(
-        'default'   => 10, // Default to 10 hours
-        'transport' => 'refresh',
+   // Add a section for the top bar timer settings
+    $wp_customize->add_section('top_bar_section', array(
+        'title'       => __('Top Bar Settings', 'mytheme'),
+        'description' => __('Customize the top bar settings, including the timer.', 'mytheme'),
+        'priority'    => 30,
     ));
-    $wp_customize->add_control('top_bar_timer_duration', array(
-        'label'    => __('Timer Duration (Hours)', 'mytheme'),
-        'section'  => 'top_bar_section',
-        'type'     => 'number',
-        'input_attrs' => array(
-            'min' => 1,
-            'max' => 24,
-        ),
+   // Add a section for the top bar timer settings
+    $wp_customize->add_section('top_bar_section', array(
+        'title'       => __('Top Bar Settings', 'mytheme'),
+        'description' => __('Customize the top bar settings, including the timer.', 'mytheme'),
+        'priority'    => 30,
+    ));
+
+    // Add a setting for the deal end date and time
+    $wp_customize->add_setting('deal_end_datetime', array(
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+
+    // Add the control for the datetime field (for Deal End Date)
+    $wp_customize->add_control('deal_end_datetime', array(
+        'label'   => __('Deal End Date and Time', 'mytheme'),
+        'section' => 'top_bar_section',
+        'type'    => 'datetime-local',  // DateTime input field type
     ));
 }
 
@@ -736,7 +754,15 @@ function woocommerce_price_filter_shortcode() {
 add_shortcode('price_filter', 'woocommerce_price_filter_shortcode');
 
 
+add_action('wp_ajax_load_sort_drawer_content', 'load_sort_drawer_content');
+add_action('wp_ajax_nopriv_load_sort_drawer_content', 'load_sort_drawer_content');
 
+function load_sort_drawer_content() {
+    ob_start();
+    get_template_part('products/sort-drawer');
+    echo ob_get_clean();
+    wp_die();
+}
 
 
 
@@ -758,109 +784,216 @@ function load_filter_drawer_content() {
 }
 add_action('wp_footer', function () {
     if (!is_admin()) {
-        echo '<script>var ajaxurl = "' . admin_url('admin-ajax.php') . '";</script>';
+        $ajax_url = admin_url('admin-ajax.php');
+        echo '<script>var ajaxurl = "' . esc_url($ajax_url) . '";</script>';
     }
 });
 
-add_action('wp_ajax_filter_products', 'filter_products_callback');
-add_action('wp_ajax_nopriv_filter_products', 'filter_products_callback');
 
 function filter_products_callback() {
+    error_log('Starting filter_products_callback');
+    $categories = isset($_POST['categories']) ? array_map('intval', (array)$_POST['categories']) : [];
+    $brands     = isset($_POST['brands']) ? array_map('intval', (array)$_POST['brands']) : [];
+    $age        = isset($_POST['age']) ? array_map('intval', (array)$_POST['age']) : [];
+    $sizes      = isset($_POST['sizes']) ? array_map('intval', (array)$_POST['sizes']) : [];
+    $colors     = isset($_POST['colors']) ? array_map('intval', (array)$_POST['colors']) : [];
+    $min_price  = floatval($_POST['min_price'] ?? 0);
+    $max_price  = floatval($_POST['max_price'] ?? 0);
+    $paged      = intval($_POST['page'] ?? 1);
 
-    // Get filter parameters
-    $categories = isset($_POST['categories']) ? $_POST['categories'] : [];
-    $brands = isset($_POST['brands']) ? $_POST['brands'] : [];
-    $age = isset($_POST['age']) ? $_POST['age'] : [];
-    $sizes = isset($_POST['sizes']) ? $_POST['sizes'] : [];
-    $colors = isset($_POST['colors']) ? $_POST['colors'] : [];
-    $min_price = isset($_POST['min_price']) ? floatval($_POST['min_price']) : 0;
-    $max_price = isset($_POST['max_price']) ? floatval($_POST['max_price']) : 0;
-    $paged = isset($_POST['page']) ? intval($_POST['page']) : 1;
+    error_log('Filter POST data: ' . print_r($_POST, true));
 
-    // Base query
-    $args = array(
-        'post_type' => 'product',
-        'posts_per_page' => 15,
-        'paged' => $paged,
-    );
+    $args = [
+        'post_type'      => 'product',
+        'posts_per_page' => 50,
+        'paged'          => $paged,
+    ];
 
-    // Tax query array
-    $tax_query = [];
+    $tax_query = ['relation' => 'AND'];
 
     if (!empty($categories)) {
-        $tax_query[] = array(
+        $tax_query[] = [
             'taxonomy' => 'product_cat',
-            'field'    => 'id',
+            'field'    => 'term_id',
             'terms'    => $categories,
             'operator' => 'IN',
-        );
+        ];
     }
 
     if (!empty($brands)) {
-        $tax_query[] = array(
+        $tax_query[] = [
             'taxonomy' => 'product_brand',
-            'field'    => 'id',
+            'field'    => 'term_id',
             'terms'    => $brands,
             'operator' => 'IN',
-        );
+        ];
     }
 
     if (!empty($age)) {
-        $tax_query[] = array(
-            'taxonomy' => 'product_cat', // Replace if you have a specific age taxonomy
-            'field'    => 'id',
+        $tax_query[] = [
+            'taxonomy' => 'product_cat',
+            'field'    => 'term_id',
             'terms'    => $age,
             'operator' => 'IN',
-        );
+        ];
     }
 
     if (!empty($sizes)) {
-        $tax_query[] = array(
+        $tax_query[] = [
             'taxonomy' => 'pa_size',
-            'field'    => 'id',
-            'terms'    => 70,
+            'field'    => 'term_id',
+            'terms'    => $sizes,
             'operator' => 'IN',
-        );
+        ];
     }
-    
+
     if (!empty($colors)) {
-        $tax_query[] = array(
+        $tax_query[] = [
             'taxonomy' => 'pa_color',
-            'field'    => 'id',
+            'field'    => 'term_id',
             'terms'    => $colors,
             'operator' => 'IN',
-        );
+        ];
     }
-    
+
+    if (count($tax_query) > 1) {
+        $args['tax_query'] = $tax_query;
+    }
+
     $meta_query = [];
 
-    if ($min_price > 0 || $max_price > 0) {
-        $price_range = ['key' => '_price', 'value' => [], 'compare' => 'BETWEEN', 'type' => 'NUMERIC'];
-    
-        if ($min_price > 0) {
-            $price_range['value'][] = $min_price;
-        } else {
-            $price_range['value'][] = 0;
-        }
-    
-        if ($max_price > 0) {
-            $price_range['value'][] = $max_price;
-        } else {
-            $price_range['value'][] = 999999;
-        }
-    
-        $meta_query[] = $price_range;
-    }
-    
-
-
-    if (!empty($tax_query)) {
-        $args['tax_query'] = $tax_query;
+    if ($min_price || $max_price) {
+        $meta_query[] = [
+            'key'     => '_price',
+            'value'   => [$min_price ?: 0, $max_price ?: 999999],
+            'compare' => 'BETWEEN',
+            'type'    => 'NUMERIC',
+        ];
     }
 
     if (!empty($meta_query)) {
         $args['meta_query'] = $meta_query;
     }
+
+    error_log('WP_Query args: ' . print_r($args, true));
+
+    $query = new WP_Query($args);
+
+    ob_start();
+
+    if ($query->have_posts()) :
+        error_log('Found posts: ' . $query->found_posts);
+        while ($query->have_posts()) : $query->the_post();
+            global $product; 
+               setup_postdata($post);
+        wc_setup_product_data($post);
+        get_template_part('components/products/product-card'); 
+         
+        endwhile;
+
+        if ($query->max_num_pages > $paged) : ?>
+            <div class="text-center mt-6">
+                <button 
+                    class="load-more-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    data-next-page="<?php echo esc_attr($paged + 1); ?>">
+                    Load More
+                </button>
+            </div>
+        <?php endif;
+    else :
+        echo '<p>No products found for the selected filters.</p>';
+    endif;
+
+    wp_reset_postdata();
+    $output = ob_get_clean();
+    error_log('Filter output length: ' . strlen($output));
+    echo $output;
+    wp_die();
+}
+
+add_action('wp_ajax_filter_products', 'filter_products_callback');
+add_action('wp_ajax_nopriv_filter_products', 'filter_products_callback');
+
+function filter_products_callback_old() {
+    $categories = isset($_POST['categories']) ? array_map('intval', (array)$_POST['categories']) : [];
+    $brands     = isset($_POST['brands']) ? array_map('intval', (array)$_POST['brands']) : [];
+    $age        = isset($_POST['age']) ? array_map('intval', (array)$_POST['age']) : [];
+    $sizes      = isset($_POST['sizes']) ? array_map('intval', (array)$_POST['sizes']) : [];
+    $colors     = isset($_POST['colors']) ? array_map('intval', (array)$_POST['colors']) : [];
+    $min_price  = floatval($_POST['min_price'] ?? 0);
+    $max_price  = floatval($_POST['max_price'] ?? 0);
+    $paged      = intval($_POST['page'] ?? 1);
+
+    // Log incoming data for debugging
+    error_log('Filter POST data: ' . print_r($_POST, true));
+
+    $args = [
+        'post_type'      => 'product',
+        'posts_per_page' => 15,
+        'paged'          => $paged,
+    ];
+
+    $tax_query = ['relation' => 'AND'];
+
+    if (!empty($categories)) {
+        $tax_query[] = [
+            'taxonomy' => 'product_cat',
+            'field'    => 'term_id', // Use term_id
+            'terms'    => $categories,
+        ];
+    }
+
+    if (!empty($brands)) {
+        $tax_query[] = [
+            'taxonomy' => 'product_brand',
+            'field'    => 'term_id', // Use term_id
+            'terms'    => $brands,
+        ];
+    }
+
+    if (!empty($age)) {
+        $tax_query[] = [
+            'taxonomy' => 'product_cat',
+            'field'    => 'term_id', // Use term_id
+            'terms'    => $age,
+        ];
+    }
+
+    if (!empty($sizes)) {
+        $tax_query[] = [
+            'taxonomy' => 'pa_size',
+            'field'    => 'term_id', // Changed from slug to term_id
+            'terms'    => $sizes,
+        ];
+    }
+
+    if (!empty($colors)) {
+        $tax_query[] = [
+            'taxonomy' => 'pa_color',
+            'field'    => 'term_id', // Changed from slug to term_id
+            'terms'    => $colors,
+        ];
+    }
+
+    if (!empty($tax_query) && count($tax_query) > 1) {
+        $args['tax_query'] = $tax_query;
+    }
+
+    $meta_query = [];
+
+    if ($min_price || $max_price) {
+        $meta_query[] = [
+            'key'     => '_price',
+            'value'   => [$min_price ?: 0, $max_price ?: 999999],
+            'compare' => 'BETWEEN',
+            'type'    => 'NUMERIC',
+        ];
+    }
+
+    if (!empty($meta_query)) {
+        $args['meta_query'] = $meta_query;
+    }
+
     $query = new WP_Query($args);
 
     ob_start();
@@ -870,68 +1003,52 @@ function filter_products_callback() {
             global $product;
             ?>
             <div class="product-card bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
-                <a href="<?php the_permalink(); ?>">
-                    <?php /* if (has_post_thumbnail()) : ?>
-                        <?php the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-4']); ?>
-                    <?php else : ?>
-                        <img src="https://via.placeholder.com/300x300" alt="<?php the_title(); ?>" class="w-full h-48 object-cover mb-4">
-                    <?php endif; */?>
-                </a>
-
-                <?php
-$attachment_ids = $product->get_gallery_image_ids();
-$hover_image_id = $attachment_ids[0] ?? null;
-?>
-<div class="relative group w-full aspect-square overflow-hidden">
-  <img 
-    src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" 
-    class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0" 
-    alt="<?php the_title_attribute(); ?>" 
-  />
-  <?php if ($hover_image_id): ?>
-    <img 
-      src="<?php echo wp_get_attachment_image_url($hover_image_id, 'medium'); ?>" 
-      class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" 
-      alt="<?php the_title_attribute(); ?>" 
-    />
-  <?php endif; ?>
-</div><?php echo do_shortcode('[yith_wcwl_add_to_wishlist]'); ?>
+                <div class="relative group w-full aspect-square overflow-hidden">
+                    <img 
+                        src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" 
+                        class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0" 
+                        alt="<?php the_title_attribute(); ?>" 
+                    />
+                    <?php
+                    $attachment_ids = $product->get_gallery_image_ids();
+                    $hover_image_id = $attachment_ids[0] ?? null;
+                    if ($hover_image_id) : ?>
+                        <img 
+                            src="<?php echo wp_get_attachment_image_url($hover_image_id, 'medium'); ?>" 
+                            class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" 
+                            alt="<?php the_title_attribute(); ?>" 
+                        />
+                    <?php endif; ?>
+                </div>
+                <?php echo do_shortcode('[yith_wcwl_add_to_wishlist]'); ?>
                 <?php
                 $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
                 if (!empty($brands) && !is_wp_error($brands)) {
                     echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
                 }
                 ?>
-
                 <h2 class="text-md font-semibold mb-2">
                     <a href="<?php the_permalink(); ?>" class="hover:underline"><?php the_title(); ?></a>
                 </h2>
-
                 <div class="mt-auto text-lg font-bold text-gray-800">
                     <?php echo $product->get_price_html(); ?>
                 </div>
-
                 <?php
-            if ($product->is_type('simple')) {
-                echo '<div class="woocommerce">';
-                woocommerce_simple_add_to_cart();
-                echo '</div>';
-            } elseif ($product->is_type('variable')) {
-               echo '<div class="woocommerce">';
-            woocommerce_variable_add_to_cart();
-              echo '</div>';
-
-       
-            }
-            ?>
-
+                if ($product->is_type('simple')) {
+                    echo '<div class="woocommerce">';
+                    woocommerce_simple_add_to_cart();
+                    echo '</div>';
+                } elseif ($product->is_type('variable')) {
+                    echo '<div class="woocommerce">';
+                    woocommerce_variable_add_to_cart();
+                    echo '</div>';
+                }
+                ?>
             </div>
             <?php
         endwhile;
 
-        // Add Load More button if more pages exist
-        if ($query->max_num_pages > $paged) {
-            ?>
+        if ($query->max_num_pages > $paged) : ?>
             <div class="text-center mt-6">
                 <button 
                     class="load-more-btn bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -939,13 +1056,12 @@ $hover_image_id = $attachment_ids[0] ?? null;
                     Load More
                 </button>
             </div>
-            <?php
-        }
-
+        <?php endif;
+    else :
+        echo '<p>No products found for the selected filters.</p>';
     endif;
 
     wp_reset_postdata();
-
     echo ob_get_clean();
     wp_die();
 }
@@ -1168,13 +1284,36 @@ function filter_products_with_term() {
     $term_id    = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
     $paged      = isset($_POST['page']) ? intval($_POST['page']) : 1;
     $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field($_POST['taxonomy']) : 'product_cat';
+ $sizes      = isset($_POST['sizes']) ? array_map('intval', (array)$_POST['sizes']) : [];
+    $colors     = isset($_POST['colors']) ? array_map('intval', (array)$_POST['colors']) : [];
+   $min_price  = floatval($_POST['min_price'] ?? 0);
+    $max_price  = floatval($_POST['max_price'] ?? 0);
 
 
-    $args = array(
+   
+
+if( $taxonomy=="product_brand")
+{
+$args = [
+    'post_type'      => 'product',
+    'posts_per_page' => 15,
+    'paged'          => $paged,
+    'tax_query'      => [
+        [
+            'taxonomy' => 'product_brand',
+            'field'    => 'term_id',
+            'terms'    => $term_id,
+        ],
+    ],
+];
+} else
+{
+     $args = array(
         'post_type'      => 'product',
         'posts_per_page' => 15,
         'paged'          => $paged,
     );
+}
 
     $tax_query = array('relation' => 'AND');
 
@@ -1212,83 +1351,51 @@ function filter_products_with_term() {
             'operator' => 'IN',
         );
     }
+  if (!empty($sizes)) {
+        $tax_query[] = [
+            'taxonomy' => 'pa_size',
+            'field'    => 'term_id',
+            'terms'    => $sizes,
+            'operator' => 'IN',
+        ];
+    }
 
+    if (!empty($colors)) {
+        $tax_query[] = [
+            'taxonomy' => 'pa_color',
+            'field'    => 'term_id',
+            'terms'    => $colors,
+            'operator' => 'IN',
+        ];
+    }
     if (count($tax_query) > 1) {
         $args['tax_query'] = $tax_query;
     }
+ $meta_query = [];
 
+    if ($min_price || $max_price) {
+        $meta_query[] = [
+            'key'     => '_price',
+            'value'   => [$min_price ?: 0, $max_price ?: 999999],
+            'compare' => 'BETWEEN',
+            'type'    => 'NUMERIC',
+        ];
+    }
+
+    if (!empty($meta_query)) {
+        $args['meta_query'] = $meta_query;
+    }
     $query = new WP_Query($args);
 
     ob_start();
 
     if ($query->have_posts()) :
         while ($query->have_posts()) : $query->the_post();
-            global $product;
-            ?>
-            <div class="product-card bg-white shadow-md rounded-lg overflow-hidden p-4 flex flex-col">
-               
-                <a href="<?php the_permalink(); ?>">
-                    <?php /* if (has_post_thumbnail()) : ?>
-                        <?php the_post_thumbnail('medium', ['class' => 'w-full h-48 object-cover mb-4']); ?>
-                    <?php else : ?>
-                        <img src="https://via.placeholder.com/300x300" alt="<?php the_title(); ?>" class="w-full h-48 object-cover mb-4">
-                    <?php endif; */?>
-                </a>
-
-                <?php
-$attachment_ids = $product->get_gallery_image_ids();
-$hover_image_id = $attachment_ids[0] ?? null;
-?>
-<div class="relative group w-full aspect-square overflow-hidden">
-  <img 
-    src="<?php echo get_the_post_thumbnail_url(get_the_ID(), 'medium'); ?>" 
-    class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0" 
-    alt="<?php the_title_attribute(); ?>" 
-  />
-  <?php if ($hover_image_id): ?>
-    <img 
-      src="<?php echo wp_get_attachment_image_url($hover_image_id, 'medium'); ?>" 
-      class="w-full h-full object-cover absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" 
-      alt="<?php the_title_attribute(); ?>" 
-    />
-  <?php endif; ?>
-</div><?php echo do_shortcode('[yith_wcwl_add_to_wishlist]'); ?>
-                <?php
-                $brands = wp_get_post_terms(get_the_ID(), 'product_brand');
-                if (!empty($brands) && !is_wp_error($brands)) {
-                    echo '<div class="text-sm text-gray-500 mb-1">' . esc_html($brands[0]->name) . '</div>';
-                }
-                ?>
-
-                <h2 class="text-md font-semibold mb-2">
-                    <a href="<?php the_permalink(); ?>" class="hover:underline"><?php the_title(); ?></a>
-                </h2>
-
-                <div class="mt-auto text-lg font-bold text-gray-800">
-                    <?php echo $product->get_price_html(); ?>
-                </div>
-
-                <?php
-            if ($product->is_type('simple')) {
-                echo '<div class="woocommerce">';
-                woocommerce_simple_add_to_cart();
-                echo '</div>';
-            } elseif ($product->is_type('variable')) {
-               echo '<div class="woocommerce">';
-            woocommerce_variable_add_to_cart();
-              echo '</div>';
-
-       
-            }
-            ?>
-
-        
-
-
-
-
+            global $product;         setup_postdata($post);
+        wc_setup_product_data($post);
+        get_template_part('components/products/product-card'); 
+    
           
-            <?php
         endwhile;?>
         </div>
        <?php if ($query->max_num_pages > $paged) {
@@ -1310,6 +1417,15 @@ $hover_image_id = $attachment_ids[0] ?? null;
     wp_die();
 }
 
+function mytheme_enqueue_ajax_script() {
+    wp_enqueue_script('jquery');
+    ?>
+    <script type="text/javascript">
+        var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+    </script>
+    <?php
+}
+add_action('wp_footer', 'mytheme_enqueue_ajax_script');
 
 // Save first name, last name, phone number, and validate password confirmation
 add_action('woocommerce_register_post', function ($username, $email, $validation_errors) {
@@ -1331,48 +1447,118 @@ add_action('woocommerce_created_customer', function ($customer_id) {
 });
 
 
-
 add_action('wp_ajax_save_shipping_address', 'ajax_save_shipping_address');
-function ajax_save_shipping_address() {
-  if (!is_user_logged_in()) {
-    wp_send_json_error(['message' => 'Not logged in']);
-  }
+add_action('wp_ajax_nopriv_save_shipping_address', 'ajax_save_shipping_address');
 
-  $user_id = get_current_user_id();
-  $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
+function ajax_save_shipping_address() {
+  $fields = [
+    'shipping_first_name',
+    'shipping_last_name',
+    'shipping_company',
+    'shipping_address_1',
+    'shipping_address_2',
+    'shipping_city',
+    'shipping_state',
+    'shipping_postcode',
+    'shipping_country',
+    'shipping_phone'
+  ];
+
+  $updated = false;
 
   foreach ($fields as $field) {
-    if (isset($_POST[$field])) {
-      update_user_meta($user_id, 'shipping_' . $field, sanitize_text_field($_POST[$field]));
-    }
+    if (!isset($_POST[$field])) continue;
+
+    $value = sanitize_text_field($_POST[$field]);
+    
+if (is_user_logged_in()) {
+    update_user_meta(get_current_user_id(), 'default_shipping_index', 'default');
+}
+    // Store in WooCommerce session for guest checkout
+    $key = str_replace('shipping_', '', $field);
+    WC()->customer->{"set_shipping_{$key}"}($value);
+
+    $updated = true;
   }
 
-  wp_send_json_success();
+  if ($updated) {
+    wp_send_json_success(['message' => 'Shipping address saved']);
+  } else {
+    wp_send_json_error(['message' => 'No valid fields to save']);
+  }
 }
 add_action('wp_ajax_save_billing_address', 'ajax_save_billing_address');
+add_action('wp_ajax_nopriv_save_billing_address', 'ajax_save_billing_address');
+
 function ajax_save_billing_address() {
-  if (!is_user_logged_in()) wp_send_json_error(['message' => 'Not logged in']);
-  $user_id = get_current_user_id();
-  $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
+  $fields = [
+    'billing_first_name',
+    'billing_last_name',
+    'billing_company',
+    'billing_address_1',
+    'billing_address_2',
+    'billing_city',
+    'billing_state',
+    'billing_postcode',
+    'billing_country',
+    'billing_phone',
+    'billing_email'
+  ];
+
+  $updated = false;
+
   foreach ($fields as $field) {
-    if (isset($_POST[$field])) {
-      update_user_meta($user_id, 'billing_' . $field, sanitize_text_field($_POST[$field]));
+    if (!isset($_POST[$field])) continue;
+
+    $value = ($field === 'billing_email')
+      ? sanitize_email($_POST[$field])
+      : sanitize_text_field($_POST[$field]);
+
+    $short_key = str_replace('billing_', '', $field);
+
+    // Always set Woo session (this is what WC validates)
+    WC()->customer->{"set_billing_{$short_key}"}($value);
+
+    // Save to user meta if logged in
+    if (is_user_logged_in()) {
+      update_user_meta(get_current_user_id(), $field, $value);
     }
+
+    $updated = true;
   }
-  wp_send_json_success();
+
+  if ($updated) {
+    wp_send_json_success(['message' => 'Billing address updated']);
+  } else {
+    wp_send_json_error(['message' => 'No valid fields received']);
+  }
 }
 
+
 add_action('wp_ajax_get_shipping_address', 'ajax_get_shipping_address');
+add_action('wp_ajax_nopriv_get_shipping_address', 'ajax_get_shipping_address');
+
 function ajax_get_shipping_address() {
-  if (!is_user_logged_in()) wp_send_json_error(['message' => 'Not logged in']);
-  $user_id = get_current_user_id();
   $fields = ['first_name','last_name','company','address_1','address_2','city','state','postcode','country','phone'];
   $data = [];
-  foreach ($fields as $field) {
-    $data[$field] = get_user_meta($user_id, 'shipping_' . $field, true);
+
+  if (is_user_logged_in()) {
+    $user_id = get_current_user_id();
+    foreach ($fields as $field) {
+      $data[$field] = get_user_meta($user_id, 'shipping_' . $field, true);
+    }
+  } else {
+    // Guest fallback: use WooCommerce session data
+    foreach ($fields as $field) {
+      $method = "get_shipping_{$field}";
+      $data[$field] = WC()->customer->$method();
+    }
   }
+
   wp_send_json_success($data);
 }
+
+
 add_action('wp_ajax_woocommerce_update_payment_method', function () {
   if (isset($_POST['payment_method'])) {
     WC()->session->set('chosen_payment_method', sanitize_text_field($_POST['payment_method']));
@@ -1579,3 +1765,472 @@ add_action('wp_ajax_update_user_profile', function () {
 
     wp_send_json_success(['message' => 'Profile updated successfully.']);
 });
+
+
+/**
+ * ===========================================
+ * Force custom template for product_cat archive pages
+ * ===========================================
+ */
+add_filter('template_include', function ($template) {
+    if (is_tax('product_cat')) {
+        $custom_template = get_theme_file_path('taxonomy-product_cat.php');
+        if (file_exists($custom_template)) {
+            return $custom_template;
+        }
+    }
+    return $template;
+}, 99);
+
+
+
+/**
+ * Register REST API to fetch all available WooCommerce coupons
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('custom/v1', '/coupons', [
+        'methods'  => 'GET',
+        'callback' => 'get_available_coupons',
+        'permission_callback' => '__return_true',
+    ]);
+});
+
+
+
+/**
+ * ===========================================
+ * Force custom template for product_brand archive pages
+ * ===========================================
+ */
+add_filter('template_include', function ($template) {
+    if (is_tax('product_brand')) {
+        $custom_template = get_theme_file_path('taxonomy-product_brand.php');
+        if (file_exists($custom_template)) {
+            return $custom_template;
+        }
+    }
+    return $template;
+}, 99);
+
+
+
+function get_available_coupons() {
+    $args = [
+        'post_type'      => 'shop_coupon',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+    ];
+
+    $coupons = get_posts($args);
+    $data = [];
+
+    foreach ($coupons as $post) {
+        $code       = strtoupper(get_the_title($post));
+        $amount     = get_post_meta($post->ID, 'coupon_amount', true);
+        $type       = get_post_meta($post->ID, 'discount_type', true);
+        $free_ship  = get_post_meta($post->ID, 'free_shipping', true);
+        $desc       = $post->post_excerpt ?: $post->post_content;
+
+        $data[] = [
+            'code'          => $code,
+            'amount'        => $amount,
+            'type'          => $type,
+            'description'   => $desc,
+            'free_shipping' => $free_ship === 'yes',
+        ];
+    }
+
+    return rest_ensure_response($data);
+}
+
+
+
+
+/**
+ * AJAX handler for applying coupon to WooCommerce cart
+ */
+add_action('wp_ajax_apply_coupon_ajax', 'apply_coupon_ajax_handler');
+add_action('wp_ajax_nopriv_apply_coupon_ajax', 'apply_coupon_ajax_handler');
+
+function apply_coupon_ajax_handler() {
+    // Security check
+    if (!check_ajax_referer('apply_coupon_nonce', 'security', false)) {
+        wp_send_json_error(['message' => 'Security check failed.']);
+    }
+
+    // Ensure WooCommerce cart is initialized
+    if (!WC()->cart) {
+        wp_send_json_error(['message' => 'Cart not initialized.']);
+    }
+
+    // Sanitize and validate coupon code
+    $coupon_code = sanitize_text_field($_POST['coupon_code'] ?? '');
+    if (empty($coupon_code)) {
+        wp_send_json_error(['message' => 'Please enter a coupon code.']);
+    }
+
+    try {
+        $coupon_code = wc_format_coupon_code($coupon_code);
+
+        // Remove any previously applied coupons
+        foreach (WC()->cart->get_applied_coupons() as $applied_code) {
+            WC()->cart->remove_coupon($applied_code);
+        }
+
+        // Try to apply the new coupon
+        $applied = WC()->cart->apply_coupon($coupon_code);
+
+        if (is_wp_error($applied)) {
+            wp_send_json_error(['message' => $applied->get_error_message()]);
+        }
+
+        if (!$applied) {
+            $notices = wc_get_notices('error');
+            wc_clear_notices();
+            $message = !empty($notices) ? wp_strip_all_tags($notices[0]['notice']) : 'Invalid or expired coupon.';
+            wp_send_json_error(['message' => $message]);
+        }
+
+        // Update cart totals after applying the coupon
+        WC()->cart->calculate_totals();
+        wc_clear_notices();
+
+        // Get HTML fragments for updated totals
+        ob_start();
+        wc_cart_totals_subtotal_html();
+        $subtotal_html = ob_get_clean();
+
+        ob_start();
+        wc_cart_totals_shipping_html();
+        $shipping_html = ob_get_clean();
+
+        ob_start();
+        wc_cart_totals_order_total_html();
+        $total_html = ob_get_clean();
+
+        ob_start();
+        foreach (WC()->cart->get_coupons() as $code => $coupon) {
+            echo wc_price(WC()->cart->get_coupon_discount_amount($code));
+        }
+        $discount_html = ob_get_clean();
+
+        // Return success response with updated totals
+        wp_send_json_success([
+            'message'   => 'Coupon applied successfully!',
+            'subtotal'  => $subtotal_html,
+            'shipping'  => $shipping_html,
+            'discount'  => $discount_html,
+            'total'     => $total_html,
+        ]);
+
+    } catch (Exception $e) {
+        error_log('Coupon Error: ' . $e->getMessage());
+        wp_send_json_error(['message' => 'An error occurred while applying the coupon.']);
+    }
+}
+
+
+
+/**
+ * Output global AJAX vars for frontend JS
+ */
+add_action('wp_footer', function () {
+    if (!is_admin()) {
+        ?>
+        <script>
+            var ajaxurl = "<?php echo admin_url('admin-ajax.php'); ?>";
+            var apply_coupon_nonce = "<?php echo wp_create_nonce('apply_coupon_nonce'); ?>";
+        </script>
+        <?php
+    }
+});
+
+
+
+
+
+
+/**
+ * Register REST API to Fetch Available Coupons
+ */
+add_action('rest_api_init', function () {
+    register_rest_route('custom/v1', '/coupons', [
+        'methods'  => 'GET',
+        'callback' => 'get_available_coupons',
+        'permission_callback' => '__return_true',
+    ]);
+});
+
+if (!function_exists('get_available_coupons')) {
+    function get_available_coupons() {
+        $args = [
+            'post_type'      => 'shop_coupon',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+        ];
+
+        $coupons = get_posts($args);
+        $data = [];
+
+        foreach ($coupons as $post) {
+            $code       = strtoupper(get_the_title($post));
+            $amount     = get_post_meta($post->ID, 'coupon_amount', true);
+            $type       = get_post_meta($post->ID, 'discount_type', true);
+            $free_ship  = get_post_meta($post->ID, 'free_shipping', true);
+            $desc       = $post->post_excerpt ?: $post->post_content;
+
+            $data[] = [
+                'code'          => $code,
+                'amount'        => $amount,
+                'type'          => $type,
+                'description'   => $desc,
+                'free_shipping' => $free_ship === 'yes',
+            ];
+        }
+
+        return rest_ensure_response($data);
+    }
+}
+
+add_action('wp_ajax_custom_lost_password', 'custom_lost_password_handler');
+add_action('wp_ajax_nopriv_custom_lost_password', 'custom_lost_password_handler');
+
+function custom_lost_password_handler() {
+    check_ajax_referer('lost_password', 'woocommerce-lost-password-nonce');
+
+    $email = sanitize_email($_POST['user_login']);
+    $user = get_user_by('email', $email);
+
+    if ($user) {
+        // Native WordPress function that triggers email
+        $result = retrieve_password($user->user_login);
+
+        if ($result === true) {
+            wp_send_json_success('A reset link has been sent to your email.');
+        } else {
+            wp_send_json_error('Could not send reset email. Please try again.');
+        }
+    } else {
+        wp_send_json_error('Invalid email address.');
+    }
+}
+add_filter('retrieve_password_message', 'custom_reset_password_email_link', 10, 4);
+
+function custom_reset_password_email_link($message, $key, $user_login, $user_data) {
+    $default_url = network_site_url("wp-login.php?action=rp&key=$key&login=" . rawurlencode($user_login), 'login');
+    $custom_url  = site_url('/reset-password/') . '?key=' . urlencode($key) . '&login=' . urlencode($user_login);
+
+    // Replace the default URL with your custom one
+    $message = str_replace($default_url, $custom_url, $message);
+
+    return $message;
+}
+add_filter('retrieve_password_title', function($title, $user_login, $user_data) {
+    return 'Reset Your Password for Junior Salon';
+}, 10, 3);
+add_filter('retrieve_password_message', function($message, $key, $user_login, $user_data) {
+    $reset_url = site_url('/reset-password/') . '?key=' . urlencode($key) . '&login=' . urlencode($user_login);
+
+    $site_name = get_bloginfo('name');
+    $user_email = $user_data->user_email;
+
+    $custom_message = <<<EOT
+Hi {$user_login},
+
+We received a request to reset your password for your account at {$site_name}.
+
+Click the link below to set a new password:
+{$reset_url}
+
+If you didn’t request this change, you can safely ignore this email — your password will remain the same.
+
+This request was made for the account associated with:
+Email: {$user_email}
+Site: {$site_name}
+
+Thank you,  
+The {$site_name} Team
+EOT;
+
+    return $custom_message;
+}, 10, 4);
+
+add_action('wp_ajax_add_shipping_address', 'save_additional_shipping_address');
+function save_additional_shipping_address() {
+    $user_id = get_current_user_id();
+    if (!$user_id) wp_send_json_error(['message' => 'You must be logged in.']);
+
+    $fields = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone'];
+    $address_data = [];
+
+    foreach ($fields as $field) {
+        $address_data[$field] = sanitize_text_field($_POST[$field] ?? '');
+    }
+
+    // Save to a meta field like "additional_shipping_addresses"
+    $existing = get_user_meta($user_id, 'additional_shipping_addresses', true);
+    if (!is_array($existing)) $existing = [];
+
+    $existing[] = $address_data;
+    update_user_meta($user_id, 'additional_shipping_addresses', $existing);
+
+    wp_send_json_success(['message' => 'Shipping address added successfully.']);
+}
+add_action('wp_ajax_edit_additional_shipping_address', 'edit_additional_shipping_address');
+function edit_additional_shipping_address() {
+    $user_id = get_current_user_id();
+    $index = isset($_POST['index']) ? intval($_POST['index']) : -1;
+
+    if (!$user_id || $index < 0) {
+        wp_send_json_error(['message' => 'Invalid request.']);
+    }
+
+    $addresses = get_user_meta($user_id, 'additional_shipping_addresses', true);
+    if (!is_array($addresses) || !array_key_exists($index, $addresses)) {
+        wp_send_json_error(['message' => 'Address not found.']);
+    }
+
+    $fields = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone'];
+    foreach ($fields as $field) {
+        $addresses[$index][$field] = sanitize_text_field($_POST[$field] ?? '');
+    }
+
+    update_user_meta($user_id, 'additional_shipping_addresses', $addresses);
+    wp_send_json_success(['message' => 'Shipping address updated successfully.']);
+}
+
+add_action('wp_ajax_set_default_shipping_address', 'set_default_shipping_address');
+function set_default_shipping_address() {
+    $user_id = get_current_user_id();
+    if (!$user_id) {
+        wp_send_json_error(['message' => 'You must be logged in.']);
+    }
+
+    $index = sanitize_text_field($_POST['index'] ?? '');
+    // Validate: either "default" or numeric index
+    if ($index !== 'default' && !is_numeric($index)) {
+        wp_send_json_error(['message' => 'Invalid address index.']);
+    }
+
+    update_user_meta($user_id, 'default_shipping_index', $index);
+    wp_send_json_success(['message' => 'Default shipping address updated.']);
+}
+
+// Remove item from cart
+add_action('wp_ajax_remove_cart_item', 'remove_cart_item_handler');
+add_action('wp_ajax_nopriv_remove_cart_item', 'remove_cart_item_handler');
+
+function remove_cart_item_handler() {
+    if (isset($_POST['cart_item_key'])) {
+        $cart_item_key = sanitize_text_field($_POST['cart_item_key']);
+        WC()->cart->remove_cart_item($cart_item_key);
+        wp_send_json_success(); // Send success response
+    } else {
+        wp_send_json_error(array('message' => 'Failed to remove item.'));
+    }
+}
+
+
+// Update Cart Item Quantity
+add_action('wp_ajax_update_cart_item', 'update_cart_item_handler');
+add_action('wp_ajax_nopriv_update_cart_item', 'update_cart_item_handler');
+
+function update_cart_item_handler() {
+    if (isset($_POST['cart_item_key']) && isset($_POST['quantity'])) {
+        $cart_item_key = sanitize_text_field($_POST['cart_item_key']);
+        $quantity = absint($_POST['quantity']);
+        WC()->cart->set_quantity($cart_item_key, $quantity);
+        wp_send_json_success(); // Send success response
+    } else {
+        wp_send_json_error(array('message' => 'Failed to update item.'));
+    }
+}
+class Custom_Mega_Menu_Walker extends Walker_Nav_Menu {
+    function start_lvl( &$output, $depth = 0, $args = null ) {
+        $indent = str_repeat("\t", $depth);
+
+        if ( $depth === 0 ) {
+            // Full-width dropdown
+            $output .= "\n$indent<div class=\"absolute left-0 top-full w-screen bg-white shadow-xl z-50 hidden group-hover:block\">\n";
+            $output .= "<div class=\"max-w-[1300px] mx-auto grid grid-cols-4 gap-8 p-8\">\n";
+        } else {
+            $output .= "\n$indent<ul class=\"mt-2 space-y-2\">\n";
+        }
+    }
+
+    function end_lvl( &$output, $depth = 0, $args = null ) {
+        if ( $depth === 0 ) {
+            $output .= "</div></div>\n"; // close grid and outer div
+        } else {
+            $output .= "</ul>\n";
+        }
+    }
+
+    function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
+        $classes = implode(' ', $item->classes ?? []);
+        $is_active = strpos($classes, 'current-menu-item') !== false;
+
+        if ( $depth === 0 ) {
+            $output .= '<li class="relative group">';
+            $output .= '<a href="' . esc_url($item->url) . '" class="inline-block px-4 py-2 text-sm font-semibold text-white hover:text-yellow-400 transition">';
+            $output .= esc_html($item->title);
+            $output .= '</a>';
+        } else {
+            $output .= '<div>';
+            $output .= '<a href="' . esc_url($item->url) . '" class="block text-sm text-gray-700 hover:text-yellow-600 font-medium">';
+            $output .= esc_html($item->title);
+            $output .= '</a>';
+            $output .= '</div>';
+        }
+
+        if ( $depth === 0 ) {
+            $output .= '</li>';
+        }
+    }
+}
+add_action('wp_ajax_woocommerce_ajax_add_to_cart', 'handle_ajax_add_to_cart');
+add_action('wp_ajax_nopriv_woocommerce_ajax_add_to_cart', 'handle_ajax_add_to_cart');
+
+function handle_ajax_add_to_cart() {
+    check_ajax_referer('add-to-cart', 'security');
+
+    $product_id = apply_filters('woocommerce_add_to_cart_product_id', absint($_POST['product_id']));
+    $quantity = empty($_POST['quantity']) ? 1 : wc_stock_amount($_POST['quantity']);
+    $variation_id = isset($_POST['variation_id']) ? absint($_POST['variation_id']) : '';
+    $variations = [];
+
+    foreach ($_POST as $key => $value) {
+        if (strpos($key, 'attribute_') === 0) {
+            $variations[$key] = wc_clean(wp_unslash($value));
+        }
+    }
+
+    $passed_validation = apply_filters('woocommerce_add_to_cart_validation', true, $product_id, $quantity, $variation_id, $variations);
+    $product_status = get_post_status($product_id);
+
+    if ($passed_validation && 'publish' === $product_status) {
+        WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variations);
+        do_action('woocommerce_ajax_added_to_cart', $product_id);
+
+        WC_AJAX::get_refreshed_fragments();
+    } else {
+        wp_send_json([
+            'success' => false,
+            'data' => [
+                'error' => true,
+                'product_url' => apply_filters('woocommerce_cart_redirect_after_error', get_permalink($product_id), $product_id),
+                'message' => __('Please choose product options before adding to cart.', 'woocommerce')
+            ]
+        ]);
+    }
+
+    wp_die();
+}
+
+add_action('wp_enqueue_scripts', 'enqueue_woocommerce_scripts');
+function enqueue_woocommerce_scripts() {
+    if (function_exists('is_woocommerce') && is_woocommerce()) {
+        wp_enqueue_script('wc-add-to-cart');
+        wp_enqueue_script('wc-add-to-cart-variation');
+    }
+}

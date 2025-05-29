@@ -40,16 +40,34 @@ $phone      = get_user_meta($user->ID, 'billing_phone', true);
   <?php
 $user_id = get_current_user_id();
 $billing = get_customer_address($user_id, 'billing');
-$shipping = get_customer_address($user_id, 'shipping');
+$shipping = get_customer_address($user_id, 'shipping', true); // Fetch default shipping
 
-function get_customer_address($user_id, $type = 'billing') {
+function get_customer_address($user_id, $type = 'billing', $default = false) {
     $fields = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'phone'];
     $address = [];
 
-    foreach ($fields as $field) {
-        $value = get_user_meta($user_id, "{$type}_{$field}", true);
-        if (!empty($value)) {
-            $address[$field] = $value;
+    // If fetching default shipping address
+    if ($default && $type === 'shipping') {
+        $default_index = get_user_meta($user_id, 'default_shipping_index', true);
+        if ($default_index === 'default') {
+            foreach ($fields as $field) {
+                $value = get_user_meta($user_id, "shipping_{$field}", true);
+                if (!empty($value)) {
+                    $address[$field] = $value;
+                }
+            }
+        } elseif (is_numeric($default_index)) {
+            $additional = get_user_meta($user_id, 'additional_shipping_addresses', true);
+            if (isset($additional[$default_index])) {
+                $address = $additional[$default_index];
+            }
+        }
+    } else {
+        foreach ($fields as $field) {
+            $value = get_user_meta($user_id, "{$type}_{$field}", true);
+            if (!empty($value)) {
+                $address[$field] = $value;
+            }
         }
     }
 
@@ -68,6 +86,7 @@ function get_customer_address($user_id, $type = 'billing') {
         !empty($address['phone']) ? 'Phone: ' . $address['phone'] : ''
     ]));
 }
+
 ?>
 
 <!-- Addresses Section -->
@@ -89,5 +108,13 @@ function get_customer_address($user_id, $type = 'billing') {
         </div>
     </div>
 </div>
+ <!-- Add Address Button -->
+    <div class="mt-6 text-center">
+        <a href="<?php echo esc_url(site_url('/my-profile/?section=address'))  ?>" 
+           class="inline-block bg-black text-white px-6 py-2 rounded hover:bg-gray-800 text-sm font-medium transition">
+            Add Delivery Address
+        </a>
+    </div>
+
 
 </div>
