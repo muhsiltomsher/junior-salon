@@ -27,7 +27,7 @@
 <body <?php body_class(); ?> class="transition-opacity duration-300">
 
 <!-- Top Bar -->
-<div class="bg-white w-full py-2 shadow-md">
+<div class="bg-white w-full py-2 shadow-md" id="deal-bar">
   <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center px-4 sm:px-6 lg:px-8 gap-2">
     <div class="text-gray-800 text-sm font-semibold">
       <?php echo esc_html(get_theme_mod('top_bar_tagline', 'Super Save')); ?>
@@ -87,34 +87,49 @@
     </div>
   </div>
 </header>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // Deal Timer
-    const durationInHours = <?php echo absint(get_theme_mod('top_bar_timer_duration', 10)); ?>;
-    const endTime = localStorage.getItem('dealEndTime') || (new Date().getTime() + durationInHours * 3600000);
-    localStorage.setItem('dealEndTime', endTime);
-    const timerElement = document.getElementById('timer');
+    // Get the deal end date from WordPress customizer
+    const dealEndDateTime = '<?php echo esc_js(get_theme_mod("deal_end_datetime", "")); ?>';
 
-    function updateTimer() {
-      const now = new Date().getTime();
-      const timeLeft = endTime - now;
+    // Check if the deal end datetime is available
+    if (dealEndDateTime) {
+      const endTime = new Date(dealEndDateTime).getTime();  // Convert to timestamp
+      localStorage.setItem('dealEndTime', endTime);  // Store in local storage
+      const timerElement = document.getElementById('timer');  // Element where timer will be displayed
+      const dealBar = document.getElementById('deal-bar');  // Target the whole deal bar to hide after expiration
 
-      if (timeLeft <= 0) {
-        timerElement.textContent = 'Deal Expired';
-        localStorage.removeItem('dealEndTime');
-        return;
+      // Function to update the timer
+      function updateTimer() {
+        const now = new Date().getTime();  // Get current time
+        const timeLeft = endTime - now;  // Calculate remaining time
+
+        // If the time has ended, hide the deal bar and show "Deal Expired"
+        if (timeLeft <= 0) {
+          timerElement.textContent = 'Deal Expired';
+          localStorage.removeItem('dealEndTime');  // Clear the stored end time
+          
+          // Hide the deal bar
+          if (dealBar) {
+            dealBar.style.display = 'none';
+          }
+          return;
+        }
+
+        // Calculate hours, minutes, and seconds
+        const hours = Math.floor(timeLeft / 3600000);
+        const minutes = Math.floor((timeLeft % 3600000) / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+
+        // Update the timer display
+        timerElement.textContent = `${hours}hr : ${minutes}min : ${seconds}sec`;
       }
 
-      const hours = Math.floor(timeLeft / 3600000);
-      const minutes = Math.floor((timeLeft % 3600000) / 60000);
-      const seconds = Math.floor((timeLeft % 60000) / 1000);
-      timerElement.textContent = `${hours}hr : ${minutes}min : ${seconds}sec`;
-    }
-
-    if (timerElement) {
-      updateTimer();
-      setInterval(updateTimer, 1000);
+      // Start the timer if the timer element exists
+      if (timerElement) {
+        updateTimer();  // Immediately show the current timer
+        setInterval(updateTimer, 1000);  // Update every second
+      }
     }
   });
 </script>

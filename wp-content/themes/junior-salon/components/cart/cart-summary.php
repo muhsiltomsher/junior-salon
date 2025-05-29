@@ -1,84 +1,46 @@
-<?php defined('ABSPATH') || exit; ?>
-
-
-<!-- Summary Header -->
-
-<div class="border-b border-gray-200 py-2 mb-4">
-    <div class="mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <h2 class="text-base sm:text-lg my-1 font-semibold text-black tracking-wide">ORDER SUMMARY</h2>
-        <div class="flex items-center gap-3">
-            <button type="submit" name="update_cart"
-                class="text-sm border border-black px-4 py-1 hover:bg-black hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                Update Cart
-            </button>
-        </div>
-    </div>
-</div>
-<!-- Pricing Overview -->
+<h3 class="text-lg font-semibold mb-4">ORDER SUMMARY</h3>
 <div class="text-sm space-y-2">
-    <div class="flex justify-between">
-        <span class="text-gray-600">SUBTOTAL</span>
-        <span class="font-semibold subtotal"><?php wc_cart_totals_subtotal_html(); ?></span>
-    </div>
-    <div class="flex justify-between">
-        <span class="text-gray-600">DELIVERY</span>
-        <span class="font-semibold shipping"><?php wc_cart_totals_shipping_html(); ?></span>
-    </div>
-    <?php if (WC()->cart->get_coupon_discount_totals()) : ?>
-    <div class="flex justify-between text-green-700">
-        <span>DISCOUNT</span>
-        <span class="font-semibold discount">
-            <?php foreach (WC()->cart->get_coupons() as $code => $coupon) {
-                    echo wc_price(WC()->cart->get_coupon_discount_amount($code));
-                } ?>
-        </span>
-    </div>
-    <?php endif; ?>
+  <?php foreach (WC()->cart->get_cart() as $cart_item):
+    $_product = $cart_item['data']; $quantity = $cart_item['quantity'];
+    if ($_product && $_product->exists()): ?>
+      <div class="flex justify-between">
+        <span><?php echo $_product->get_name() . ' × ' . $quantity; ?></span>
+        <span><?php echo wc_price($_product->get_price() * $quantity); ?></span>
+      </div>
+  <?php endif; endforeach; ?>
 </div>
 
-<!-- Include Coupon Section -->
-<?php include get_template_directory() . '/components/cart/cart-coupon.php'; ?>
+<hr class="my-3" />
 
-<!-- Free Shipping -->
-<div class="bg-green-100 text-green-800 text-xs px-3 py-2 rounded my-3 flex items-center gap-2">
-    <img src="<?php echo get_template_directory_uri(); ?>/assets/images/icons/check-done-icon.svg" alt="Check"
-        class="w-4 h-4" />
-    Your order qualifies for FREE shipping
+<div class="flex justify-between font-medium">
+  <span>Total Price (Item)</span>
+  <span><?php wc_cart_totals_subtotal_html(); ?></span>
 </div>
 
-<!-- Total -->
-<div class="flex justify-between text-lg font-bold mt-4 text-gray-800">
-    <span>TOTAL</span>
-    <span class="total"><?php wc_cart_totals_order_total_html(); ?></span>
+<div class="flex justify-between">
+  <span>Shipping Tax & Fee</span>
+  <span><?php wc_cart_totals_shipping_html(); ?></span>
 </div>
 
-<!-- Checkout Button -->
-<a href="<?php echo esc_url(wc_get_checkout_url()); ?>"
-    class="mt-6 w-full block text-center bg-black text-white text-sm py-2 rounded hover:bg-gray-800 transition">
-    Secure Checkout
+<div class="flex justify-between font-bold text-lg mt-2">
+  <span>Grand Total</span>
+  <span><?php wc_cart_totals_order_total_html(); ?></span>
+</div>
+
+<a href="<?php echo esc_url(wc_get_checkout_url()); ?>" class="mt-6 w-full block text-center bg-black text-white text-sm py-3 rounded">
+  <?php esc_html_e('Checkout', 'woocommerce'); ?>
 </a>
 
-<!-- Payment Info -->
-<div class="border-t mt-6 pt-4 text-xs text-gray-600">
-    <p class="text-green-600 font-medium flex items-center gap-2 mb-2">
-        <img src="<?php echo get_template_directory_uri(); ?>/assets/images/icons/shield-icon.svg" alt="Security"
-            class="w-4 h-4" />
-        JuniorSalon Protects Your Payment Information
-    </p>
-    <ul class="list-disc pl-5 space-y-1">
-        <li class="flex items-start gap-2">
-            <img src="<?php echo get_template_directory_uri(); ?>/assets/images/icons/tik-icon.svg" alt="Tick"
-                class="w-4 h-4 mt-0.5" />
-            We Do Not Store Your Payment Cards CVV, Ensuring Your Privacy
-        </li>
-        <li class="flex items-start gap-2">
-            <img src="<?php echo get_template_directory_uri(); ?>/assets/images/icons/tik-icon.svg" alt="Tick"
-                class="w-4 h-4 mt-0.5" />
-            Every Transaction Is Secure And Encrypted
-        </li>
-    </ul>
-    <div class="flex gap-2 mt-3">
-        <img src="<?php echo get_template_directory_uri(); ?>/assets/images/icons/payments-icon.svg" alt="Payment Icons"
-            class="h-5" />
-    </div>
+<!-- Trust Info -->
+<div class="bg-gray-50 p-3 rounded text-xs text-gray-600 space-y-1">
+  <p><strong>JuniorSalon Protects Your Payment/Information</strong></p>
+  <ul class="list-disc pl-4">
+    <li>Encrypted SSL secure checkout</li>
+    <li>We respect your privacy</li>
+  </ul>
+  <div class="flex gap-2 mt-2">
+    <img src="visa.svg" alt="Visa" class="h-5">
+    <img src="mastercard.svg" alt="Mastercard" class="h-5">
+    <img src="paypal.svg" alt="PayPal" class="h-5">
+  </div>
 </div>

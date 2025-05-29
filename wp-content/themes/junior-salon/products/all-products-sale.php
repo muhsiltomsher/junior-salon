@@ -80,59 +80,177 @@ $query = new WP_Query($args);
   </div>
 </div>
 
+<!-- Add AJAX URL -->
 <script>
-function openDrawerfilter() {
-  document.getElementById('drawer-overlay').classList.remove('hidden');
-  const drawer = document.getElementById('drawer-container-filter');
-  drawer.classList.remove('hidden');
-  drawer.classList.remove('translate-x-full');
-  document.getElementById('ajax-loader').classList.remove('hidden');
+    var ajaxurl = '<?php echo esc_js(admin_url('admin-ajax.php')); ?>';
+</script>
 
-  fetch(ajaxurl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'action=load_filter_drawer_content'
-  })
-  .then(res => res.text())
-  .then(data => {
-    drawer.innerHTML = data;
-    document.getElementById('ajax-loader').classList.add('hidden');
-  });
-}
+<!-- Your JavaScript -->
+<script>jQuery(document).ready(function($) {
+    let page = 1;
+    let currentSort = '';
 
-function closeDrawerfilter() {
-  document.getElementById('drawer-overlay').classList.add('hidden');
-  const drawer = document.getElementById('drawer-container-filter');
-  drawer.classList.add('translate-x-full');
-  setTimeout(() => drawer.classList.add('hidden'), 300);
-}
+    // Open filter drawer
+    function openDrawerfilter() {
+        $('#drawer-overlay').removeClass('hidden');
+        $('#drawer-container-filter').removeClass('hidden');
+        $('#ajax-loader').removeClass('hidden');
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'load_filter_drawer_content'
+            },
+            success: function(response) {
+                $('#drawer-container-filter').html(response);
+                $('#ajax-loader').addClass('hidden');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading filter drawer:', xhr.responseText);
+                $('#drawer-container-filter').html('<p class="text-red-500">Failed to load filters.</p>');
+                $('#ajax-loader').addClass('hidden');
+            }
+        });
+    }
 
-function openDrawer(title, url) {
-  const drawer = document.getElementById('drawer');
-  const panel = document.getElementById('drawer-panel');
-  const content = document.getElementById('drawer-content');
+    // Close filter drawer
+    function closeDrawerfilter() {
+        $('#drawer-overlay').addClass('hidden');
+        $('#drawer-container-filter').addClass('hidden');
+    }
 
-  drawer.classList.remove('hidden');
-  setTimeout(() => panel.classList.remove('translate-x-full'), 10);
-  document.getElementById('ajax-loader').classList.remove('hidden');
+    // Collect filter values
+    function getFilterData() {
+        return {
+            action: 'filter_products',
+            categories: $('input[name="product_cat[]"]:checked').map(function() { return $(this).val(); }).get(),
+            brands: $('input[name="product_brand[]"]:checked').map(function() { return $(this).val(); }).get(),
+            age: $('input[name="age_product_cat[]"]:checked').map(function() { return $(this).val(); }).get(),
+            sizes: $('input[name="pa_size[]"]:checked').map(function() { return $(this).val(); }).get(),
+            colors: $('input[name="pa_color[]"]:checked').map(function() { return $(this).val(); }).get(),
+            min_price: $('input[name="min_price"]').val(),
+            max_price: $('input[name="max_price"]').val(),
+            page: page
+        };
+    }
 
-  fetch(url)
-    .then(res => res.text())
-    .then(html => {
-      content.innerHTML = html;
-      document.getElementById('ajax-loader').classList.add('hidden');
+    // Load products with filter
+    function loadProducts(pageNum = 1, append = false, filterData = {}) {
+        $('#ajax-loader').removeClass('hidden');
+
+        filterData.page = pageNum; // update page number in case it changes
+
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: filterData,
+            success: function(response) {
+                if (append) {
+                    const tempDiv = $('<div>').html(response);
+                    $('#product-grid').append(tempDiv.hide().fadeIn(400));
+                } else {
+                    $('#product-grid').html(response);
+                }
+                $('#ajax-loader').addClass('hidden');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading products:', xhr.responseText);
+                $('#product-grid').html('<p class="text-red-500">Failed to load products.</p>');
+                $('#ajax-loader').addClass('hidden');
+            }
+        });
+    }
+
+    // Handle filter button click
+    $(document).on('click', '#filter-button', function(e) {
+        e.preventDefault();
+        const filters = getFilterData();
+        console.log('Applied Filters:', filters);
+
+        $('#drawer-overlay').trigger('click');
+        $('#load-more').hide();
+        page = 1;
+        loadProducts(page, false, filters);
+        closeDrawerfilter();
     });
-}
 
-function closeDrawer() {
-  const drawer = document.getElementById('drawer');
-  const panel = document.getElementById('drawer-panel');
-  panel.classList.add('translate-x-full');
-  setTimeout(() => drawer.classList.add('hidden'), 300);
-}
+    // Handle load more button
+    $(document).on('click', '#load-more', function() {
+        page++;
+        const filters = getFilterData();
+        loadProducts(page, true, filters);
+    });
 
-document.getElementById('close-drawer')?.addEventListener('click', closeDrawer);
-document.getElementById('drawer')?.addEventListener('click', function(e) {
-  if (e.target === this) closeDrawer();
+    // Handle sort change
+    $('#drawer').on('change', 'input[name="sort"]', function() {
+        currentSort = $(this).val();
+        page = 1;
+        fetchSortedProducts(currentSort, page);
+        closeDrawer();
+    });
+
+    function fetchSortedProducts(sort, page) {
+        $('#ajax-loader').removeClass('hidden');
+        $.ajax({
+            url: ajaxurl,
+            method: 'GET',
+            data: {
+                action: 'fetch_sorted_products',
+                sort: sort,
+                page: page
+            },
+            success: function(response) {
+                if (page === 1) {
+                    $('#product-grid').html(response);
+                } else {
+                    const tempDiv = $('<div>').html(response);
+                    $('#product-grid').append(tempDiv.hide().fadeIn(400));
+                }
+                $('#ajax-loader').addClass('hidden');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching sorted products:', xhr.responseText);
+                $('#ajax-loader').addClass('hidden');
+            }
+        });
+    }
+
+    // Global drawer functions
+    window.openDrawerfilter = openDrawerfilter;
+    window.closeDrawerfilter = closeDrawerfilter;
+
+    window.openDrawer = function(title, url) {
+        const drawer = document.getElementById('drawer');
+        const drawerPanel = document.getElementById('drawer-panel');
+        const drawerContent = document.getElementById('drawer-content');
+        drawer.classList.remove('hidden');
+        setTimeout(() => drawerPanel.classList.remove('translate-x-full'), 10);
+
+        $('#ajax-loader').removeClass('hidden');
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                drawerContent.innerHTML = html;
+                $('#ajax-loader').addClass('hidden');
+            })
+            .catch(error => {
+                console.error('Error loading sort drawer:', error);
+                drawerContent.innerHTML = '<p class="text-red-500">Failed to load content.</p>';
+                $('#ajax-loader').addClass('hidden');
+            });
+    };
+
+    window.closeDrawer = function() {
+        const drawer = document.getElementById('drawer');
+        const drawerPanel = document.getElementById('drawer-panel');
+        drawerPanel.classList.add('translate-x-full');
+        setTimeout(() => drawer.classList.add('hidden'), 300);
+    };
+
+    document.getElementById('close-drawer').addEventListener('click', window.closeDrawer);
+    document.getElementById('drawer').addEventListener('click', function(e) {
+        if (e.target === this) window.closeDrawer();
+    });
 });
+
 </script>
