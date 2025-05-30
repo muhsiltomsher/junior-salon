@@ -1,3 +1,31 @@
+<!-- Loader -->
+<div id="ajax-loader" class="fixed top-0 left-0 w-full h-full bg-white bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+</div>
+
+<!-- FILTER & ORDER Button -->
+<button onclick="openDrawerfilter()" class="flex items-center bg-transparent group m-0 text-lg font-semibold px-4 py-2 hover:text-black">
+    FILTER & ORDER
+</button>
+
+<!-- Drawer Filter Container -->
+<div id="drawer-container-filter" class="fixed top-0 right-0 w-80 h-full bg-white shadow-lg z-50 p-6 overflow-y-auto hidden transition-transform duration-300 ease-in-out">
+</div>
+<div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="closeDrawerfilter()"></div>
+
+<!-- SORT BY Button -->
+<button onclick="openDrawer('Sort By', '<?php echo esc_url(get_theme_file_uri('/products/sort-drawer.php')); ?>')" class="flex items-center bg-transparent group m-0">
+    <span class="text-lg">Sort By</span>
+</button>
+
+<!-- Sort Drawer Container -->
+<div id="drawer" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden">
+    <div class="absolute top-0 right-0 bg-white w-3/4 md:w-1/2 h-full p-6 transform transition-transform duration-300 ease-in-out translate-x-full" id="drawer-panel">
+        <button id="close-drawer" class="absolute top-4 right-4 text-xl text-gray-500 hover:text-gray-700">×</button>
+        <div id="drawer-content"></div>
+    </div>
+</div>
+<h2 class="text-3xl font-bold mb-6">SALE</h2>
 <?php
 $paged = get_query_var('paged') ? get_query_var('paged') : 1;
 
@@ -21,18 +49,7 @@ $query = new WP_Query($args);
 ?>
 
 <section class="pt-[30px] px-[15px]">
-  <div class="flex flex-col sm:flex-row justify-between items-center border-b border-yellow-300 pb-2 mb-6 gap-3">
-    <div class="flex items-center gap-6">
-      <button onclick="openDrawerfilter()" class="text-sm font-semibold underline underline-offset-4 text-black hover:text-black transition flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M6 12h12M10 18h4"/></svg> Filter & Order
-      </button>
-    </div>
-    <div class="flex items-center gap-6">
-      <button onclick="openDrawer('Sort By', '<?php echo esc_url( get_template_directory_uri() . '/products/sort-drawer.php' ); ?>')" class="text-sm font-semibold underline underline-offset-4 text-black hover:text-black transition flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 6h18M6 12h12M10 18h4"/></svg> Sort By
-      </button>
-    </div>
-  </div>
+
 
   <div class="flex items-center justify-between border-b border-yellow-300 pb-2 mb-6">
     <h2 class="text-base sm:text-lg md:text-xl font-semibold uppercase tracking-wide text-gray-800">
@@ -63,22 +80,6 @@ $query = new WP_Query($args);
   <?php endif; ?>
 </section>
 
-<!-- Loader -->
-<div id="ajax-loader" class="fixed top-0 left-0 w-full h-full bg-white bg-opacity-75 flex items-center justify-center z-50 hidden">
-  <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
-</div>
-
-<!-- Drawer Filter Container -->
-<div id="drawer-container-filter" class="fixed top-0 right-0 w-[300px] h-full bg-white z-50 p-6 overflow-y-auto hidden shadow-lg transition-transform duration-300 ease-in-out translate-x-full"></div>
-<div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="closeDrawerfilter()"></div>
-
-<!-- Sort Drawer Container -->
-<div id="drawer" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 hidden">
-  <div class="absolute top-0 right-0 bg-white w-3/4 md:w-1/2 h-full p-6 transform transition-transform duration-300 ease-in-out translate-x-full" id="drawer-panel">
-    <button id="close-drawer" class="absolute top-4 right-4 text-xl text-gray-500 hover:text-gray-700">&times;</button>
-    <div id="drawer-content"></div>
-  </div>
-</div>
 
 <!-- Add AJAX URL -->
 <script>
@@ -89,7 +90,7 @@ $query = new WP_Query($args);
 <script>jQuery(document).ready(function($) {
     let page = 1;
     let currentSort = '';
-
+    let pagetype = 'sale';
     // Open filter drawer
     function openDrawerfilter() {
         $('#drawer-overlay').removeClass('hidden');
@@ -130,7 +131,8 @@ $query = new WP_Query($args);
             colors: $('input[name="pa_color[]"]:checked').map(function() { return $(this).val(); }).get(),
             min_price: $('input[name="min_price"]').val(),
             max_price: $('input[name="max_price"]').val(),
-            page: page
+            page: page,
+ pagetype: pagetype
         };
     }
 

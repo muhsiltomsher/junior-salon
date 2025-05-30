@@ -58,7 +58,7 @@
               $webp_url = str_replace(['.jpg', '.png'], '.webp', $logo_url);
               ?>
               <picture>
-                <source srcset="<?php echo esc_url($webp_url); ?>" type="image/webp">
+                <source srcset="<?php echo esc_url($logo_url); ?>" type="image/webp">
                 <img src="<?php echo esc_url($logo_url); ?>" 
                      alt="<?php echo esc_attr(get_bloginfo('name')); ?>" 
                      class="w-auto max-w-[150px] h-auto" 
