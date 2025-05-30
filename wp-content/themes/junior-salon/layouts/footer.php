@@ -130,4 +130,30 @@
   </a>
 </footer>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const overrideLabels = () => {
+    document.querySelectorAll('.yith-wcwl-add-to-wishlist-button__label').forEach(label => {
+      const current = label.textContent.trim().toLowerCase();
+      if (current === 'add to wishlist') {
+        label.textContent = 'Move to Wishlist';
+      } else if (current === 'product added!') {
+        label.textContent = 'Added to Wishlist';
+      } else if (current === 'browse wishlist') {
+        label.textContent = 'Already in Wishlist';
+      }
+    });
+  };
+
+  // Initial override
+  overrideLabels();
+
+  // Observe future changes
+  const observer = new MutationObserver(overrideLabels);
+  observer.observe(document.body, { childList: true, subtree: true });
+});
+</script>
+
+
 <?php wp_footer(); ?>

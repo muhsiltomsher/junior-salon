@@ -2257,3 +2257,20 @@ function enqueue_woocommerce_scripts() {
         wp_enqueue_script('wc-add-to-cart-variation');
     }
 }
+
+
+add_filter('yith_wcwl_add_to_wishlist_label', 'custom_wishlist_label_add', 10, 2);
+add_filter('yith_wcwl_added_to_wishlist_label', 'custom_wishlist_label_added', 10, 2);
+add_filter('yith_wcwl_exists_in_wishlist_label', 'custom_wishlist_label_exists', 10, 2);
+
+function custom_wishlist_label_add($label, $product_id) {
+    return 'Move to Wishlist'; // Before adding
+}
+
+function custom_wishlist_label_added($label, $product_id) {
+    return 'Added to Wishlist'; // After added
+}
+
+function custom_wishlist_label_exists($label, $product_id) {
+    return 'Already in Wishlist'; // If item exists
+}
