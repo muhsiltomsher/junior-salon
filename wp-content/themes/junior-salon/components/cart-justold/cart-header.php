@@ -6,6 +6,5 @@
       .then(count => $el.textContent = `Showing ${count} products you added`);
   });
 ">
-  Showing <?php echo WC()->cart->get_cart_contents_count(); ?> products you added 
+  Showing <?php echo WC()->cart->get_cart_contents_count(); ?> products you added
 </p>
-<?php do_action('woocommerce_before_cart_table'); ?>
