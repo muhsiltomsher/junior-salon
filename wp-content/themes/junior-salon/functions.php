@@ -2274,3 +2274,8 @@ function custom_wishlist_label_added($label, $product_id) {
 function custom_wishlist_label_exists($label, $product_id) {
     return 'Already in Wishlist'; // If item exists
 }
+
+
+//***********wpml ********//
+do_action( 'wpml_register_single_string', 'junior-salon', 'Shop by Category', 'Shop by Category' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Shop All Products', 'Shop All Products' );
