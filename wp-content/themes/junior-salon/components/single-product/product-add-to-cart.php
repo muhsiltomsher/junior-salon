@@ -237,4 +237,28 @@ document.addEventListener("DOMContentLoaded", function () {
         <?php esc_html_e('Sorry, this product is currently out of stock or unavailable in any variation.', 'woocommerce'); ?>
     </div>
     <?php endif; ?>
-    <?php } ?>
+    <?php } elseif ($product->is_type('simple')) {
+    ?>
+
+    <p class="text-lg font-bold text-gray-800"><?php echo $product->get_price_html(); ?></p>
+
+    <form class="cart space-y-6" method="post" enctype="multipart/form-data"
+        action="<?php echo esc_url(apply_filters('woocommerce_add_to_cart_form_action', $product->get_permalink())); ?>">
+
+        <div>
+            <label for="product-qty" class="block text-sm font-medium text-gray-700 uppercase mb-1">Quantity</label>
+            <input type="number" id="product-qty" name="quantity" min="1" value="1"
+                class="w-24 border border-gray-300 rounded px-3 py-1 text-sm" />
+        </div>
+
+        <input type="hidden" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>" />
+
+        <button type="submit"
+            class="w-full text-sm uppercase px-6 py-3 bg-black text-white border border-black hover:bg-transparent hover:text-black transition">
+            <?php echo esc_html($product->single_add_to_cart_text()); ?>
+        </button>
+    </form>
+
+    <?php
+}
+?>

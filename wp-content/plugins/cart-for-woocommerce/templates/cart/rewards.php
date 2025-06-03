@@ -4,13 +4,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $rewards = FKCart\Includes\Data::get_rewards();
+
+$preview_class = '';
+if ( fkcart_is_preview() && is_null( $rewards ) ) {
+	$rewards       = FKCart\Includes\Front::get_dummy_rewards();
+	$preview_class = 'fkcart-preview-reward fkcart-hide';
+
+}
+
 if ( empty( $rewards ) ) {
 	return;
 }
 
 $rewards_position = is_rtl() ? 'right' : 'left';
+
+
 ?>
-<div class="fkcart-reward-panel fkcart-panel">
+<div class="fkcart-reward-panel fkcart-design-classic fkcart-panel <?php echo $preview_class; ?>">
     <div class="fkcart-reward-message"><?php echo wp_kses_post( $rewards['title'] ) ?></div>
     <div class="fkcart-progress-wrap">
         <div class="fkcart-progress-bar" style="width:<?php esc_html_e( $rewards['progress_bar'] ) ?>%"></div>

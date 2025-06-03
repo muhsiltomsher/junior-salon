@@ -16,8 +16,10 @@
 <h2 class="text-sm font-semibold uppercase mt-6 mb-3">Age</h2>
 <?php echo do_shortcode('[age_category_checkboxes]'); ?>
 
+
+
 <!-- Brand -->
-<h2 class="text-sm font-semibold uppercase mt-6 mb-3">Brand</h2>
+<h2 class="text-sm font-semibold uppercase mt-6 mb-3" id="filter-brand">Brand</h2>
 <?php echo do_shortcode('[brand_checkboxes]'); ?>
 
 <!-- Price -->

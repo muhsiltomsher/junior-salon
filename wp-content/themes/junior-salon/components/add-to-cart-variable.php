@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 
 global $product;
 
-$available_variations   = $product->get_available_variations();
+$available_variations    = $product->get_available_variations();
 $attributes              = $product->get_variation_attributes();
 $selected_attributes     = $product->get_default_attributes();
 
@@ -17,7 +17,7 @@ if (!empty($available_variations)) :
       method="post"
       enctype="multipart/form-data"
       data-product_id="<?php echo absint($product->get_id()); ?>"
-      data-product_variations='<?php echo wc_esc_json(wp_json_encode($available_variations)); ?>'>
+      data-product_variations="<?php echo htmlspecialchars(wp_json_encode($available_variations), ENT_QUOTES, 'UTF-8'); ?>">
 
     <?php foreach ($attributes as $attribute_name => $options) :
         $sanitized_name = sanitize_title($attribute_name);
@@ -61,14 +61,20 @@ if (!empty($available_variations)) :
         </button>
     </div>
 </form>
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.querySelector(".variations_form");
     if (!form) return;
 
     const variationInput = form.querySelector(".variation-id-field");
-    const variations = JSON.parse(form.dataset.product_variations);
+    let variations;
+    try {
+        variations = JSON.parse(form.dataset.product_variations || "[]");
+    } catch (e) {
+        console.error("Invalid product_variations JSON", e);
+        return;
+    }
+
     const btn = form.querySelector(".add-to-cart-btn");
     const btnText = btn.querySelector(".btn-text");
     const btnLoading = btn.querySelector(".btn-loading");
@@ -79,27 +85,31 @@ document.addEventListener("DOMContentLoaded", function () {
             const attrName = group.dataset.attributeName;
             const checked = group.querySelector("input[type=radio]:checked");
             if (checked) {
-                selected[`attribute_${attrName}`] = checked.value;
+                selected[`attribute_${attrName}`] = checked.value.trim();
             }
         });
         return selected;
     };
 
     const findMatchingVariation = (selected) => {
-        return variations.find(v =>
-            Object.entries(v.attributes).every(([k, val]) => selected[k] === val)
-        );
+        return variations.find(v => {
+            return Object.entries(v.attributes).every(([k, val]) => {
+                return selected[k] && selected[k].toLowerCase() === val.toLowerCase();
+            });
+        });
     };
 
-    form.addEventListener("change", () => {
+    const updateVariationInput = () => {
         const selected = getSelectedAttributes();
         const match = findMatchingVariation(selected);
         variationInput.value = match ? match.variation_id : "";
-    });
+    };
+
+    form.addEventListener("change", updateVariationInput);
+    form.addEventListener("input", updateVariationInput);
 
     form.addEventListener("submit", function (e) {
         e.preventDefault();
-
         const selected = getSelectedAttributes();
         const match = findMatchingVariation(selected);
 
@@ -130,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => {
             if (response.error && response.product_url) {
                 window.location = response.product_url;
-            } else {
+            } else if (response.fragments) {
                 document.body.dispatchEvent(new CustomEvent("wc_fragment_refresh"));
                 alert("Product added to cart!");
             }
@@ -141,6 +151,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+
+
 <?php else : ?>
     <div class="text-sm text-red-600">This product is currently unavailable.</div>
 <?php endif; ?>

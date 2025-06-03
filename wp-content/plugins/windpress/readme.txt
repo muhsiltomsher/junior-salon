@@ -4,7 +4,7 @@ Donate link: https://ko-fi.com/Q5Q75XSF7
 Tags: tailwind, tailwindcss, tailwind css
 Requires at least: 6.0
 Tested up to: 6.8
-Stable tag: 3.2.31
+Stable tag: 3.2.40
 Requires PHP: 7.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -19,7 +19,7 @@ WindPress is a platform agnostic [Tailwind CSS](https://tailwindcss.com/) integr
 
 **Tailwind CSS version**:
 - 3.4.17
-- 4.1.5
+- 4.1.8
 
 ### Features
 
@@ -56,6 +56,7 @@ It's easy to build design with Tailwind CSS thanks to the seamless integration w
 * [Breakdance](https://breakdance.com/ref/165/) — **Pro**
 * [Bricks](https://bricksbuilder.io/) — **Pro**
 * [Builderius](https://builderius.io/?referral=afdfca82c8) — **Pro**
+* [Etch](https://etchwp.com/) — **Pro**
 * [Meta Box Views](https://metabox.sjv.io/OeOeZr) — **Pro**
 * [Oxygen 6 / Classic](https://oxygenbuilder.com/ref/12/) — **Pro**
 * [WPCodeBox 2](https://wpcodebox.com/?ref=185) — **Pro**
@@ -122,6 +123,30 @@ For instance:
 Free version 1.**0**.4
 Pro version 1.**1**.4
 
+= 3.2.40 =
+* **Improve**: [Bricks] The Plain Classes and Variables feature compat for version 2.0-beta
+* **Improve**: Optimize the bundle (Zip) size of the plugin
+
+= 3.2.39 =
+* **New**: Upgraded to Tailwind CSS v4 (4.1.8 latest)
+* **Improve**: [TW4] The Play Observer / Compiler performance & stability
+* **Improve**: [TW4] Robust `@import` handling
+
+= 3.2.35 =
+* **Improve**: [Gutenberg] The Play Observer / Compiler stability
+* **Fix**: [TW4] `@import` a CDN stylesheet is not working correctly
+
+= 3.2.34 =
+* **New**: [Etch](https://etchwp.com/) integration **[Pro]** (experimental)
+
+= 3.2.33 =
+* **New**: Upgraded to Tailwind CSS v4 (4.1.7 latest)
+* **New**: Added context menu to the Simple File System explorer (right-click on the file explorer)
+
+= 3.2.32 =
+* **New**: Upgraded to Tailwind CSS v4 (4.1.6 latest)
+* **Fix**: Unable to add new files to the Simple File System
+
 = 3.2.31 =
 * **New**: Upgraded to Tailwind CSS v4 (4.1.5 latest)
 * **Improve**: [TW4] The compiler is now logging the candidates it has found to aid in debugging
@@ -180,7 +205,7 @@ Pro version 1.**1**.4
 * **Fix**: [TW4] The local stylesheet import is not resolved correctly
 
 = 3.2.3 =
-* **New**: [Oxygen 6](https://oxygenbuilder.com/ref/12/) integration **[Pro]**
+* **New**: [Oxygen 6](https://oxygenbuilder.com/ref/12/) integration **[Pro]** (experimental)
 * **Improve**: [TW4] The Play Observer / Compiler performance & stability
 * **Fix**: [TW4][Breakdance] The style are now instantly applied on the editor
 

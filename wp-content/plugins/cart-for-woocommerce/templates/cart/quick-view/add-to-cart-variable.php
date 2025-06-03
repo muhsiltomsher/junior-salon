@@ -19,16 +19,36 @@ defined( 'ABSPATH' ) || exit;
 
 global $product;
 
-$attribute_keys  = array_keys( $attributes );
-$variations_json = wp_json_encode( $available_variations );
-$variations_attr = function_exists( 'wc_esc_json' ) ? wc_esc_json( $variations_json ) : _wp_specialchars( $variations_json, ENT_QUOTES, 'UTF-8', true );
 
+$attribute_keys        = array_keys( $attributes );
+$variations_json       = wp_json_encode( $available_variations );
+$variations_attr       = function_exists( 'wc_esc_json' ) ? wc_esc_json( $variations_json ) : _wp_specialchars( $variations_json, ENT_QUOTES, 'UTF-8', true );
+$settings              = \FKCart\Includes\Data::get_settings();
+$reset_to_default_text = isset( $settings['reset_to_variations'] ) ? $settings['reset_to_variations'] : apply_filters( 'fkcart_reset_to_variations', __( 'Clear', 'woocommerce' ) );
 do_action( 'woocommerce_before_add_to_cart_form' ); ?>
     <form class="variations_form cart" action="<?php echo esc_url( apply_filters( 'woocommerce_add_to_cart_form_action', $product->get_permalink() ) ); ?>" method="post" enctype='multipart/form-data' data-product_id="<?php echo absint( $product->get_id() ); ?>" data-product_variations="<?php esc_attr_e( $variations_attr ); // WPCS: XSS ok. ?>">
-		<?php do_action( 'woocommerce_before_variations_form' ); ?>
+		<?php
+
+		do_action( 'woocommerce_before_variations_form' );
+
+		if ( isset( $_POST['special_addon_variation'] ) && $_POST['special_addon_variation'] && is_array( $_POST['special_addon_variation'] ) && count( $_POST['special_addon_variation'] ) > 0 ) {
+
+			$special_addon_variation     = $_POST['special_addon_variation'];
+			$fkcart_spl_product_id       = isset( $_POST['special_addon_variation']['fkcart_spl_product_id'] ) ? esc_attr( sanitize_text_field( $_POST['special_addon_variation']['fkcart_spl_product_id'] ) ) : '';
+			$fkcart_spl_product_cart_key = isset( $_POST['special_addon_variation']['fkcart_spl_product_cart_key'] ) ? esc_attr( sanitize_text_field( $_POST['special_addon_variation']['fkcart_spl_product_cart_key'] ) ) : '';
+			$fkcart_spl_product_action   = isset( $_POST['special_addon_variation']['fkcart_spl_product_action'] ) ? esc_attr( sanitize_text_field( $_POST['special_addon_variation']['fkcart_spl_product_action'] ) ) : '';
+
+			printf( '<input type="hidden" name="%1$s" id="%1$s" value="%2$s" />', esc_attr( 'fkcart_spl_product_id' ), esc_attr( $fkcart_spl_product_id ) );
+			printf( '<input type="hidden" name="%1$s" id="%1$s" value="%2$s" />', esc_attr( 'fkcart_spl_product_cart_key' ), esc_attr( $fkcart_spl_product_cart_key ) );
+			printf( '<input type="hidden" name="%1$s" id="%1$s" value="%2$s" />', esc_attr( 'fkcart_spl_product_action' ), esc_attr( $fkcart_spl_product_action ) );
+		}
+
+		?>
+
+
 		<?php if ( ! empty( $available_variations ) ) { ?>
             <div class="fkcart-product-form-reset-form">
-				<?php echo wp_kses_post( apply_filters( 'woocommerce_reset_variations_link', '<a class="reset_variations" href="#">' . esc_html__( 'Reset to Default', 'woocommerce' ) . '</a>' ) ) ?>
+				<?php echo wp_kses_post( apply_filters( 'woocommerce_reset_variations_link', '<a class="reset_variations" href="#">' . esc_html__( apply_filters( 'fkcart_reset_to_variations', __( 'Clear', 'woocommerce' ) ) ) . '</a>' ) ) ?>
             </div>
             <div class="fkcart-product-form-field variations">
                 <table class="variations" role="presentation">
