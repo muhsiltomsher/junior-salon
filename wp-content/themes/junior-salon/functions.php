@@ -800,14 +800,37 @@ function filter_products_callback() {
     $min_price  = floatval($_POST['min_price'] ?? 0);
     $max_price  = floatval($_POST['max_price'] ?? 0);
     $paged      = intval($_POST['page'] ?? 1);
-
+    $pagetype = isset($_POST['pagetype']) ? sanitize_text_field($_POST['pagetype']) : '';
     error_log('Filter POST data: ' . print_r($_POST, true));
 
-    $args = [
+    if($pagetype=="sale")
+    {
+$args = array(
+    'post_type' => 'product',
+    'posts_per_page' => 15,
+    'paged' => $paged,
+    'orderby' => 'title',
+    'order' => 'ASC',
+    'meta_query' => array(
+        array(
+            'key'     => '_sale_price',  // Check for sale price
+            'value'   => 0,
+            'compare' => '>',
+            'type'    => 'NUMERIC',
+        ),
+    ),
+);
+
+    }
+    else
+    {
+   $args = [
         'post_type'      => 'product',
         'posts_per_page' => 50,
         'paged'          => $paged,
     ];
+    }
+ 
 
     $tax_query = ['relation' => 'AND'];
 

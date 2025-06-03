@@ -11,7 +11,7 @@ if ( isset( $floating_icon ) ) {
 	$icon = $floating_icon;
 }
 ?>
-<div id="fkcart-floating-toggler" class="fkcart-toggler" data-position="<?php esc_attr_e( $settings['cart_icon_position'] ); ?>" style="<?php esc_attr_e( $hide_cart_empty ? 'visibility:hidden' : '' ); ?>">
+<div id="fkcart-floating-toggler" class="fkcart-toggler" data-position="<?php esc_attr_e( $settings['cart_icon_position'] ); ?>" style="<?php esc_attr_e( $hide_cart_empty ? 'display:none' : '' ); ?>">
     <div class="fkcart-floating-icon">
 		<?php fkcart_get_template_part( 'icon/cart/' . $icon, '', [], true ) ?>
     </div>

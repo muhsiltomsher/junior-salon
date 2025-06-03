@@ -21,6 +21,11 @@ $is_you_saved_enabled = \FKCart\Includes\Data::is_you_saved_enabled();
 			if ( isset( $cart_item['visibility_hidden'] ) ) {
 				continue;
 			}
+
+			if ( isset( $cart_item['cart_item']['_fkcart_spl_addon'] ) && true === $cart_item['cart_item']['_fkcart_spl_addon'] ) {
+				continue;
+
+			}
 			fkcart_get_template_part( 'cart/item-single', '', [ 'cart_item' => $cart_item, 'cart_item_key' => $cart_item_key ] );
 		}
 		?>

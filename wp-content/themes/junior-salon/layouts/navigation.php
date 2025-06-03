@@ -15,7 +15,7 @@
 </a>
 
     <!-- Wishlist Icon -->
-    <a href="<?php echo wc_get_account_endpoint_url('wishlist'); ?>" class="flex items-center group m-0">
+    <a href="<?php echo home_url('/wishlist'); ?>" class="flex items-center group m-0">
         <div class="h-10 w-10 flex items-center justify-center rounded-full border border-transparent group-hover:border-white transition-all duration-300">
             <img src="https://tomsher.co/junior-salon/wp-content/uploads/2025/04/wishlist.svg" alt="Wishlist" class="h-6 w-6">
         </div>

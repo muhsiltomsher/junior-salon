@@ -2,9 +2,9 @@
 Contributors: xlplugins, amans2k
 Tags: WooCommerce Cart, Side Cart, Modern Cart, Floating Cart, WooCommerce Checkout
 Requires at least: 5.0
-Tested up to: 6.8.0
+Tested up to: 6.8.1
 Requires PHP: 7.0
-Stable tag: 1.7.1
+Stable tag: 1.8.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -218,10 +218,52 @@ You can display coupon codes on the FunnelKit side cart or even auto-apply the c
 
 == Change log ==
 
-= 1.7.1
+= 1.8.0 =
+* Added: Introduced compatibility with WooCommerce PayPal Payments for smart buttons. (#551)
+* Added: Enabled multiple header menu selections for the cart icon to enhance customization. (#610)
+* Added: Added compatibility with CommerceGurus CommerceKit variation swatches for better product options. (#664)
+* Added: Added compatibility with Product Variation Swatches for WooCommerce by ThemeHigh for enhanced variation displays. (#698)
+* Added: Added compatibility with YITH Product Bundles to expand bundling options. (#703)
+* Added: Added compatibility with Discount Rules Core by Flycart for advanced discounting. (#714)
+* Added: New setting added to allow custom CSS selectors to trigger the cart for more control. (#716)
+* Improved: Enhanced translations for the admin interface to provide better clarity. (#526)
+* Improved: Updated compatibility with Polylang for smoother multilingual support. (#546)
+* Improved: Numerous minor yet impactful CSS styling enhancements for a cleaner, more polished appearance. (#584)
+* Improved: Prevented cart hooks from attaching when the cart is disabled to improve performance. (#96)
+* Improved: Slide cart now opens automatically when the class 'header-cart-link' is found in the header. (#549)
+* Improved: Updated compatibility with WPML to enhance multilingual functionality. (#555)
+* Improved: Cart fees now display above shipping for clearer fee visibility. (#570)
+* Improved: Improved price visibility across all product subscription cases for better transparency. (#557)
+* Improved: Optimized admin app loading for caching scenarios to improve performance. (#571)
+* Improved: Styling enhancements for the admin app to improve visual consistency. (#573)
+* Improved: Enhanced compatibility with Sumo Payment Plans for seamless integration. (#577)
+* Improved: Updated compatibility with Fancy Product Designer for better product customization. (#639)
+* Improved: Improved compatibility with the Astra theme for better theme integration. (#607)
+* Improved: Enhanced compatibility with WooCommerce Product Bundles plugin for smoother bundling. (#679)
+* Improved: Added support for slide cart when using the add to cart block for improved UX. (#587)
+* Improved: Improved side cart compatibility with multiple themes and custom header cart icons. (#583)
+* Improved: Responsive design improvements for a better experience across devices. (#584)
+* Improved: Total display now shows total instead of subtotal when WooCommerce settings for price display including tax are enabled. (#671)
+* Improved: Fixed cart quantity cookie updates to reflect cart changes consistently. (#692)
+* Improved: Optimized cart loading by storing fragments in local storage for faster page loads. (#673)
+* Improved: Enhanced "You save %" and value display to be compatible with discount and currency plugins. (#696)
+* Improved: Better validation message for add to cart quantity validation in sync with WooCommerce. (#725)
+* Improved: Compatibility with TranslatePress plugin for style attribute getting translated. (#731)
+* Fixed: Resolved issue with moment timezone import in the admin app for accurate time handling. (#567)
+* Fixed: Corrected save amount merge tag output for amounts in thousands for accurate display. (#602)
+* Fixed: Resolved issue with the checkout button showing a loading state indefinitely in certain cases. (#608)
+* Fixed: Improved user experience when installed without Funnel Builder for smoother operation. (#615)
+* Fixed: Enabled applying coupons by pressing the keyboard Enter key for faster checkout. (#616)
+* Fixed: Corrected WooCommerce activation notice display in the admin area for better clarity. (#623)
+* Fixed: Cleared cart quantity cookies on thank you pages to prevent incorrect quantities on revisit. (#630)
+* Fixed: Redirects now lead to single add-to-cart pages for better compatibility in certain scenarios. (#655, #684, #701)
+* Fixed: Improved cart quantity and total cookies to support SSL for better security. (#675)
+* Fixed: Enhanced price display in select options quick view for product variations. (#712)
+
+= 1.7.1 =
 * Fixed: Variation product options weren't displaying in the side cart, fixed. (#543)
 
-= 1.7.0
+= 1.7.0 =
 * Compatible upto WordPress 6.5.3
 * Compatible upto WooCommerce 8.9.1
 * Added: Compatibility added with the 'WC bookings' plugin. Savings are not displaying for gift and booking product types. (#534)
@@ -235,7 +277,7 @@ You can display coupon codes on the FunnelKit side cart or even auto-apply the c
 * Dev: Action hook 'fkcart_after_item_meta' updated. (#531)
 * Dev: Filter hook 'fkcart_use_buit_in_cart_item_data_template' to support WooCommerce native cart item. (#521)
 
-= 1.6.0
+= 1.6.0 =
 * Compatible upto WordPress 6.5
 * Compatible upto WooCommerce 8.7
 * Compatible with Funnel Builder Pro 3.3

@@ -23,6 +23,8 @@
 	__('Builderius integration', 'windpress');
 	__('Elementor', 'windpress');
 	__('Elementor integration', 'windpress');
+	__('Etch', 'windpress');
+	__('Etch integration', 'windpress');
 	__('GreenShift', 'windpress');
 	__('The GreenShift integration. It requires the Gutenberg/Block Editor integration enabled.', 'windpress');
 	__('Gutenberg', 'windpress');
@@ -53,12 +55,6 @@
 	__('Light', 'windpress');
 	__('Dark', 'windpress');
 	__('System', 'windpress');
-	__('Generating cache...', 'windpress');
-	__('Please wait while we generate the CSS cache.', 'windpress');
-	__('Cache generated', 'windpress');
-	__('Cache generated in %s.', 'windpress');
-	__('Generate Cache Error', 'windpress');
-	__('An error occurred while generating the CSS cache. Check the Browser\'s Console for more information', 'windpress');
 	__('Files', 'windpress');
 	__('Wizard', 'windpress');
 	__('Logs', 'windpress');
@@ -96,6 +92,7 @@
 	__('Save', 'windpress');
 	__('Close', 'windpress');
 	__('read-only', 'windpress');
+	__('Path on disk', 'windpress');
 	__('Delete', 'windpress');
 	__('Reset to default', 'windpress');
 	__('Are you sure you want to %s the "%s" file?', 'windpress');
@@ -115,6 +112,8 @@
 	__('Create New File', 'windpress');
 	__('Filename may include a path. (css or js)', 'windpress');
 	__('Submit', 'windpress');
+	__('Rename File', 'windpress');
+	__('The previous filename', 'windpress');
 	__('Error', 'windpress');
 	__('File "%s" is read-only and not deletable', 'windpress');
 	__('File "%s" is required for the WindPress to work and not deletable', 'windpress');
@@ -143,7 +142,9 @@
 	__('SFS data imported. Remember to save the changes.', 'windpress');
 	__('New file creation canceled', 'windpress');
 	__('File "%s" created', 'windpress');
-	__('Entry not found', 'windpress');
+	__('File rename canceled', 'windpress');
+	__('File "%s" renamed to "%s"', 'windpress');
+	__('Entry not found: ', 'windpress');
 	__('Explorer', 'windpress');
 	__('Add new file', 'windpress');
 	__('Export SFS volume', 'windpress');
@@ -193,4 +194,10 @@
 	__('Generating...', 'windpress');
 	__('Generate', 'windpress');
 	__('Last Generated', 'windpress');
+	__('Generating cache...', 'windpress');
+	__('Please wait while we generate the CSS cache.', 'windpress');
+	__('Cache generated', 'windpress');
+	__('Cache generated in %s.', 'windpress');
+	__('Generate Cache Error', 'windpress');
+	__('An error occurred while generating the CSS cache. Check the Browser\'s Console for more information', 'windpress');
 });

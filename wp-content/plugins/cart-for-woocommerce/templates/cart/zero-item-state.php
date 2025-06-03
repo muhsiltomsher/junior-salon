@@ -17,7 +17,7 @@ if ( '#' !== $shop_link ) {
 	$link_behaviour = '';
 }
 ?>
-    <div class="fkcart-zero-state <?php echo( $hide_zero_state ) ?>">
+    <div class="fkcart-zero-state <?php echo esc_attr( $hide_zero_state ) ?>">
         <div class="fkcart-icon-cart">
 			<?php fkcart_get_template_part( 'icon/checkout', '', [ 'width' => 56, 'height' => 56 ] ); ?>
         </div>

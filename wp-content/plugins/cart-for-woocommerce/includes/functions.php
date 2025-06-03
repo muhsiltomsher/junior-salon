@@ -8,20 +8,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'fkcart_is_wc_active' ) ) {
 	/**
-	 * WC active check
+	 * Checks if WooCommerce is active and available.
 	 *
-	 * @return bool
+	 * @return bool True if WooCommerce is active, false otherwise.
+	 * @since 1.0.0
 	 */
 	function fkcart_is_wc_active() {
-		if ( class_exists( '\WooCommerce' ) ) {
-			return true;
-		}
+		$wc_class_exists = class_exists( '\WooCommerce' );
 
-		if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
-			return true;
-		}
-
-		return false;
+		return $wc_class_exists || ( in_array( 'woocommerce/woocommerce.php', (array) apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) && $wc_class_exists );
 	}
 }
 
@@ -36,7 +31,7 @@ if ( ! function_exists( 'fkcart_get_template_part' ) ) {
 	 *
 	 * @return false|string|void
 	 */
-	function fkcart_get_template_part( $slug, $name = '', $args = [], $echo = true ) {
+	function fkcart_get_template_part( $slug, $name = '', $args = [], $echo = true, $custom_path = '' ) {
 		if ( $args && is_array( $args ) ) {
 			extract( $args ); // phpcs:ignore
 		}
@@ -45,10 +40,16 @@ if ( ! function_exists( 'fkcart_get_template_part' ) ) {
 
 		/** Try to locate file in your theme. theme/cart-for-woocommerce/slug-name.php and theme/cart-for-woocommerce/slug.php */
 		$template_path = ! empty( $name ) ? "{$slug}-{$name}.php" : "{$slug}.php";
-		$template      = locate_template( [ 'cart-for-woocommerce/' . $template_path ] );
+
+		$template = locate_template( [ 'cart-for-woocommerce/' . $template_path ] );
+		$tmp      = FKCART_PLUGIN_DIR;
+		if ( ! empty( $custom_path ) && is_dir( $custom_path ) ) {
+
+			$tmp = $custom_path;
+		}
 
 		/** Can alter template directory path */
-		$template_path = apply_filters( 'fkcart_set_template_path', FKCART_PLUGIN_DIR . '/templates', $template, $args );
+		$template_path = apply_filters( 'fkcart_set_template_path', $tmp . '/templates', $template, $args );
 
 		/** Try to locate slug-name.php */
 		if ( ! $template && $name && file_exists( $template_path . "/{$slug}-{$name}.php" ) ) {
@@ -90,7 +91,7 @@ if ( ! function_exists( 'fkcart_variable_product_type' ) ) {
 	 * @return bool
 	 */
 	function fkcart_is_variable_product_type( $type ) {
-		return in_array( $type, [ 'variable', 'variable-subscription' ] );
+		return in_array( $type, [ 'variable', 'variable-subscription', 'simple-subscription' ] );
 	}
 }
 
@@ -302,5 +303,82 @@ if ( ! function_exists( 'fkcart_fb_pro_min_version_verified' ) ) {
 		$v2 = empty( $compare_version ) ? FKCART_MIN_FB_PRO_VERSION : $compare_version;
 
 		return version_compare( $pro_version, $v2, '>=' );
+	}
+}
+
+if ( ! function_exists( 'fkcart_map_variation_attributes' ) ) {
+	/**
+	 * Map Variation Attributes in case of ANY ,ANY options
+	 *
+	 * @param $variation_attr
+	 * @param $product_attr
+	 *
+	 * @return array
+	 */
+
+	function fkcart_map_variation_attributes( $variation_attr, $product_attr ) {
+		$new_product_attr = [];
+		foreach ( $product_attr as $k => $item ) {
+			$k                      = strtolower( $k );//Lowering the Attribute keys
+			$k                      = str_replace( ' ', '-', $k );
+			$new_product_attr[ $k ] = $item;
+		}
+		$output = [];
+		foreach ( $variation_attr as $key => $attr ) {
+			if ( empty( $attr ) ) {
+				$key  = strtolower( $key );
+				$key  = str_replace( ' ', '-', $key );
+				$attr = $new_product_attr[ $key ][0];
+			}
+			$output[ 'attribute_' . $key ] = $attr;
+		}
+
+		return $output;
+	}
+}
+
+if ( ! function_exists( 'fkcart_supported_upsell_product_type' ) ) {
+	/**
+	 * @param $_product WC_Product;
+	 *
+	 * @return mixed|null
+	 *
+	 */
+	function fkcart_supported_upsell_product_type( $_product ) {
+		if ( fkcart_is_preview() ) {
+			return true;
+		}
+		if ( ! $_product instanceof WC_Product ) {
+			return false;
+		}
+
+		/** Woocommerce Custom Product Addons by Acowebs https://acowebs.com */
+		$wcpa_product_meta = $_product->get_meta( '_wcpa_product_meta' );
+		if ( ! empty( $wcpa_product_meta ) && function_exists( 'WCPA' ) ) {
+			return false;
+		}
+		/**
+		 * WooCommerce Product Add-ons https://woocommerce.com/products/product-add-ons/
+		 */
+		$product_addon = $_product->get_meta( '_product_addons' );
+		if ( ! empty( $product_addon ) && class_exists( '\WC_Product_Addons' ) ) {
+			return false;
+		}
+
+		$types = apply_filters( 'fkcart_allow_product_types', array(
+			'simple',
+			'variable',
+			'variation',
+			'variable-subscription',
+			'subscription',
+		) );
+		$type  = $_product->get_type();
+
+		if ( in_array( $type, $types, true ) ) {
+			return true;
+		}
+
+
+		return false;
 	}
 }
