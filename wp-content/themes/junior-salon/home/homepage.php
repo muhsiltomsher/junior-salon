@@ -12,10 +12,4 @@
 
   </div>
 </section>
-<script>
-  const ajaxurl = "<?php echo esc_url(admin_url('admin-ajax.php')); ?>";
 
-  document.addEventListener("DOMContentLoaded", function () {
-    // entire lazy load logic removed
-  });
-</script>

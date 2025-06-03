@@ -1,0 +1,2 @@
+<?php
+return ['items'=>['Hey, there! It looks like you enjoy creating forms with WPForms. Would you do us a favor and take a few seconds to give us a 5-star review? We’d love to hear from you.'=>['saveStringInDb'=>true,'cmp'=>['WordPress',3],'names'=>[],'urls'=>[]],'Ok, you deserve it'=>['saveStringInDb'=>true,'cmp'=>['WordPress',3],'names'=>[],'urls'=>[]],'Nope, maybe later'=>['saveStringInDb'=>true,'cmp'=>['WordPress',3],'names'=>[],'urls'=>[]],'I already did'=>['saveStringInDb'=>true,'cmp'=>['WordPress',3],'names'=>[],'urls'=>[]]]];
