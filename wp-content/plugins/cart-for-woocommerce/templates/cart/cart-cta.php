@@ -2,6 +2,11 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+$hide_zero_state = 'fkcart-hide';
+if ( ! fkcart_is_preview() && ! is_null( WC()->cart ) && WC()->cart->is_empty() ) {
+	return;
+}
 $front    = \FKCart\Includes\Front::get_instance();
 $settings = \FKCart\Includes\Data::get_settings();
 
@@ -16,6 +21,7 @@ $shop_link = apply_filters( 'fkcart_shop_continue_link', $shop_link, $front );
 $cart_link = apply_filters( 'fkcart_cart_link', $cart_link, $front );
 $cart_text = apply_filters( 'fkcart_cart_link_text', $settings['checkout_button_text'], $front );
 
+
 if ( '#' !== $shop_link ) {
 	$continue_link_behaviour = '';
 }
@@ -23,6 +29,11 @@ do_action( 'fkcart_before_smart_button', $front );
 
 /** Load smart buttons */
 $front->get_smart_buttons();
+$total_amount = $front->get_subtotal();
+if ( ! is_null( WC()->session ) && ! is_null( WC()->cart ) && wc_tax_enabled() && ! WC()->cart->display_prices_including_tax() ) {
+	$total_amount = WC()->cart->get_total();
+
+}
 
 do_action( 'fkcart_before_checkout_button', $front );
 ?>
@@ -39,12 +50,12 @@ do_action( 'fkcart_before_checkout_button', $front );
 					echo wp_kses_post( '<div class="fkcart-checkout--price-discounted ' . ( ! $discount_enabled ? "fkcart-hide" : "" ) . '">' . $front->get_discounted_subtotal() . '</div>' );
 					echo wp_kses_post( '<div class="fkcart-checkout--price-normal ' . ( $discount_enabled ? "fkcart-hide" : "" ) . '">' . $front->get_subtotal() . '</div>' );
 				} else {
-					echo wp_kses_post( apply_filters( 'fkcart_checkout_button_total', $front->get_subtotal() ) );
+					echo wp_kses_post( apply_filters( 'fkcart_checkout_button_total', $total_amount ) );
 				}
 				?>
             </div>
         </a>
-        <a href="<?php echo esc_url( $shop_link ) ?>" class="fkcart-shopping-link <?php echo( ! $continue_link ? "fkcart-hide" : "" ); ?> <?php echo( $continue_link_behaviour === 'close_cart' ? 'fkcart-modal-close' : '' ); ?>"><?php esc_html_e( $settings['continue_shopping_text'] ); ?></a>
+
     </div>
 <?php
 do_action( 'fkcart_after_checkout_button', $front );

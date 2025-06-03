@@ -13,6 +13,7 @@ $coupon_enable      = wc_coupons_enabled() && ( $is_coupon_enabled || $is_previe
 
 $show_at_load = ! did_action( 'wc_ajax_get_refreshed_fragments' ) && wp_doing_ajax();
 
+
 $is_style1_upsell_enabled = $is_preview || ( $is_upsells_enabled && 'style1' === $cart_settings['upsell_style'] );
 $is_style2_upsell_enabled = $is_preview || ( $is_upsells_enabled && 'style2' === $cart_settings['upsell_style'] );
 $is_style3_upsell_enabled = $is_preview || ( $is_upsells_enabled && 'style3' === $cart_settings['upsell_style'] );
@@ -35,13 +36,20 @@ if ( $is_upsells_enabled && $is_style1_upsell_enabled ) {
 if ( $is_upsells_enabled && $is_style1_upsell_enabled ) {
 	$slider_body_class = 'fkcart-body-style-3';
 }
-$slider_footer_class = empty( $slider_footer_class ) && ! defined( 'WFFN_PRO_BUILD_VERSION' ) ? 'fkcart-pb-16' : $slider_footer_class;
+$slider_footer_class = empty( $slider_footer_class ) && ! defined( 'WFFN_PRO_BUILD_VERSION' ) ? 'fkcart-pb-24' : $slider_footer_class;
 
-$slider_below_cta_class = ( $is_style4_upsell_enabled || $is_style5_upsell_enabled ) ? 'fkcart-pt-16' : '';
+$slider_below_cta_class    = ( $is_style4_upsell_enabled || $is_style5_upsell_enabled ) ? 'fkcart-pt-16' : '';
+$reward_progress_bar_style = $cart_settings['reward_progress_bar_style'] ? $cart_settings['reward_progress_bar_style'] : 'classic';
 
+$reward_classes = [ 'fkcart-reward-product-wrap' ];
+if ( isset( $cart_settings['reward_progress_bar_enable_animation'] ) && true === $cart_settings['reward_progress_bar_enable_animation'] ) {
+	$reward_classes[] = 'fkcart-animation-active';
+}
+
+do_action( 'fkcart_before_modal_container', $front );
 ?>
-<div class="fkcart-modal-container <?php echo ( is_null( WC()->cart ) || WC()->cart->is_empty() ) ? '' : 'fkcart-has-items' ?>" data-direction="<?php esc_attr_e( is_rtl() ? 'rtl' : 'ltr' ); ?>" data-slider-pos="<?php esc_attr_e( $cart_settings['cart_icon_position'] ); ?>" data-nonce="<?php echo wp_create_nonce( 'fkcart' ); ?>">
-    <div class="fkcart-preview-ui <?php echo( $has_zero_state ); ?>" data-anim="<?php echo esc_attr( $cart_settings['css_animation_speed'] ); ?>">
+<div class="fkcart-modal-container <?php echo ( is_null( WC()->cart ) || WC()->cart->is_empty() ) ? '' : 'fkcart-has-items' ?>" data-direction="<?php esc_attr_e( is_rtl() ? 'rtl' : 'ltr' ); ?>" data-slider-pos="<?php esc_attr_e( $cart_settings['cart_icon_position'] ); ?>" data-nonce="<?php echo esc_attr( wp_create_nonce( 'fkcart' ) ); ?>">
+    <div class="fkcart-preview-ui <?php echo esc_attr( $has_zero_state ); ?>" data-anim="<?php echo esc_attr( $cart_settings['css_animation_speed'] ); ?>">
         <!-- Header -->
         <div class="fkcart-slider-header">
 			<?php fkcart_get_template_part( 'cart/header-style1' ); ?>
@@ -50,32 +58,56 @@ $slider_below_cta_class = ( $is_style4_upsell_enabled || $is_style5_upsell_enabl
 		<?php do_action( 'fkcart_after_header', $front ); ?>
 
         <!-- Reward -->
-		<?php $is_rewards_enabled && fkcart_get_template_part( 'cart/rewards' ); ?>
-        <!-- END: Reward -->
 
-        <!-- Body -->
-        <div class="fkcart-slider-body">
-            <!-- Cart Zero State -->
-			<?php ! $is_preview && fkcart_get_template_part( 'cart/zero-item-state' ); ?>
-            <!-- END: Cart Zero State -->
+        <div class="<?php echo esc_attr( implode( ' ', $reward_classes ) ) ?>">
+			<?php
+			if ( fkcart_is_preview() ) {
+				fkcart_get_template_part( 'cart/rewards/design-2' );
+				fkcart_get_template_part( 'cart/rewards' );
+			} else {
+				if ( isset( $is_rewards_enabled ) && $reward_progress_bar_style == 'modern' ) {
+					fkcart_get_template_part( 'cart/rewards/design-2' );
+				} else {
+					fkcart_get_template_part( 'cart/rewards' );
+				}
+			}
+			?>
+            <!-- END: Reward -->
 
-            <!-- START: Cart Items -->
-			<?php fkcart_get_template_part( 'cart/items' ); ?>
-            <!-- END: Cart Items -->
+            <!-- Body -->
+            <div class="fkcart-slider-body">
+                <!-- Cart Zero State -->
+				<?php ! $is_preview && fkcart_get_template_part( 'cart/zero-item-state' ); ?>
+                <!-- END: Cart Zero State -->
 
-            <!-- START: Upsell Style -->
-			<?php $is_style1_upsell_enabled && fkcart_get_template_part( 'cart/upsell-style1' ) ?>
-			<?php $is_style2_upsell_enabled && fkcart_get_template_part( 'cart/upsell-style2' ) ?>
-			<?php $is_style3_upsell_enabled && fkcart_get_template_part( 'cart/upsell-style3' ) ?>
-            <!-- END: Upsell Style -->
+                <!-- START: Cart Items -->
+				<?php fkcart_get_template_part( 'cart/items' ); ?>
+                <!-- END: Cart Items -->
+
+                <!-- START: Upsell Style -->
+				<?php $is_style1_upsell_enabled && fkcart_get_template_part( 'cart/upsell-style1' ) ?>
+				<?php $is_style2_upsell_enabled && fkcart_get_template_part( 'cart/upsell-style2' ) ?>
+				<?php $is_style3_upsell_enabled && fkcart_get_template_part( 'cart/upsell-style3' ) ?>
+                <!-- END: Upsell Style -->
+            </div>
         </div>
-
         <!-- Slider Footer -->
-        <div class="fkcart-slider-footer <?php echo $slider_footer_class ?>">
+        <div class="fkcart-slider-footer <?php echo esc_attr( $slider_footer_class ) ?>">
 
             <!-- START: Coupon Area -->
 			<?php $coupon_enable && fkcart_get_template_part( 'cart/coupon-box' ) ?>
             <!-- END: Coupon Area -->
+
+
+            <!-- START: Special Addon -->
+			<?php
+
+
+			do_action( 'fkcart_after_coupon_section', $cart_settings );
+
+
+			?>
+
 
             <!-- START: Order Summary -->
 			<?php fkcart_get_template_part( 'cart/order-summary' ); ?>
@@ -85,13 +117,29 @@ $slider_below_cta_class = ( $is_style4_upsell_enabled || $is_style5_upsell_enabl
 			<?php fkcart_get_template_part( 'cart/cart-cta' ); ?>
             <!-- END: CTA -->
 
+
             <!-- START: Upsell Style -->
-            <div class="fkcart-below-checkout-upsell <?php echo $slider_below_cta_class ?>">
+            <div class="fkcart-below-checkout-upsell <?php echo esc_attr( $slider_below_cta_class ) ?>">
 				<?php $is_style4_upsell_enabled && fkcart_get_template_part( 'cart/upsell-style1' ) ?>
 				<?php $is_style5_upsell_enabled && fkcart_get_template_part( 'cart/upsell-style2' ) ?>
             </div>
-            <!-- END: Upsell Style -->
+
+
+            <div id="fkcart-popup" class="fkcart-popup">
+                <div class="fkcart-popup-content">
+                    <div class="fkcart-title-wrap">
+                        <h4></h4>
+                        <span class="fkcart-close">
+                            <?php fkcart_get_template_part( 'icon/close', '', [ 'width' => 20, 'height' => 20 ] ); ?>
+                        </span>
+                    </div>
+
+                    <div class="fkcart-item-meta-content"></div>
+                </div>
+            </div>
+
         </div>
+
     </div>
 
     <!-- START: Quick View -->
@@ -110,4 +158,9 @@ $slider_below_cta_class = ( $is_style4_upsell_enabled || $is_style5_upsell_enabl
 
     <!-- Modal Shadow -->
     <div class="fkcart-modal-backdrop"></div>
+
+
 </div>
+<?php
+do_action( 'fkcart_after_modal_container', $front );;
+?>
