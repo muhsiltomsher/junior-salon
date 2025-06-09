@@ -16,12 +16,16 @@ if ($parent_cat && !is_wp_error($parent_cat)) {
 
 <section class="pt-[30px] px-[15px]">
   <!-- Header -->
-  <div class="flex items-center justify-between border-b border-yellow-300 pb-2 mb-4">
-    <h2 class="text-base sm:text-lg md:text-xl font-semibold uppercase tracking-wide text-gray-800">Shop by Age</h2>
-    <a href="/products" class="text-sm font-semibold underline underline-offset-4 text-black hover:text-black transition">
-      Shop All
-    </a>
-  </div>
+<div class="flex items-center justify-between border-b border-yellow-300 pb-2 mb-4">
+  <h2 class="text-base sm:text-lg md:text-xl font-semibold uppercase tracking-wide text-gray-800">
+    <?php echo apply_filters('wpml_translate_single_string', 'Shop by Age', 'junior-salon', 'Shop by Age'); ?>
+  </h2>
+  <a href="<?php echo esc_url(site_url((ICL_LANGUAGE_CODE === 'ar' ? '/ar/product-category/العمر-ar/' : '/product-category/age/'))); ?>" 
+     class="text-sm font-semibold underline underline-offset-4 text-black hover:text-black transition">
+    <?php echo apply_filters('wpml_translate_single_string', 'Shop All Products', 'junior-salon', 'Shop All Products'); ?>
+  </a>
+</div>
+
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-[15px]">
     <!-- Left: Subcategory Images -->

@@ -1,6 +1,17 @@
 <?php
+$current_lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
+
+
+
+if ($current_lang === 'ar') {
+
 $exclude_uncategorized = get_option('default_product_cat');
+$parent_home_category = get_term_by('slug', 'الفئة-الرئيسية', 'product_cat');
+} else {
+  $exclude_uncategorized = get_option('default_product_cat');
 $parent_home_category = get_term_by('slug', 'home-category', 'product_cat');
+  
+}
 
 $all_home_categories = [];
 
@@ -19,12 +30,12 @@ $categories_row_2 = array_slice($all_home_categories, 4, 5);
 
 <div class="mx-auto pt-[30px] px-[15px]">
     <div class="flex items-center justify-between border-b border-yellow-200 pb-2 mb-6">
-        <h2 class="text-lg sm:text-xl md:text-2xl font-semibold uppercase tracking-wide">
-            Shop by Category
-        </h2>
-        <a href="/products" class="text-black text-sm font-semibold underline underline-offset-4 hover:text-black transition">
-            Shop All Products
-        </a>
+         <?php echo apply_filters( 'wpml_translate_single_string', 'Shop by Category', 'junior-salon', 'Shop by Category' ); ?>
+
+     <a href="<?php echo esc_url(site_url($current_lang === 'ar' ? '/ar/المنتجات/' : '/products/')); ?>">
+  <?php echo apply_filters('wpml_translate_single_string', 'Shop All Products', 'junior-salon', 'Shop All Products'); ?>
+</a>
+
     </div>
 
     <!-- First Row (Grid) -->
