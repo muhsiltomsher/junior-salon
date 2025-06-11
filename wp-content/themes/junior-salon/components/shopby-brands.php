@@ -1,6 +1,14 @@
 <div class="mx-auto pt-[30px] px-[15px]">
   <div class="flex items-center justify-between border-b border-yellow-200 pb-2 mb-6">
-    <h2 class="text-lg sm:text-xl md:text-2xl font-semibold uppercase tracking-wide">Shop by Brands</h2>
+    <h2 class="text-lg sm:text-xl md:text-2xl font-semibold uppercase tracking-wide">
+      
+    
+     <?php
+    echo apply_filters( 'wpml_translate_single_string', 'Shop by Brands', 'junior-salon', 'Shop by Brands' );
+  ?>
+  
+  
+  </h2>
     <div class="flex items-center gap-2">
       <button class="brand-swiper-prev w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition hover:bg-gray-200 hover:border-gray-400">
         <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

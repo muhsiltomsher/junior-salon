@@ -4,8 +4,24 @@
  */
 
 defined('ABSPATH') || exit;
+$current_lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
 
-$products = load_products_by_category('whats-hot');
+if ($current_lang === 'ar') {
+    $products = load_products_by_category('ما-هو-ساخن', 'ar');
+    $tabs = [
+        'ما-هو-ساخن'     => "ما هو ساخن",
+        'الأكثر-مبيعاً'   => "الأكثر مبيعاً",
+        'sale'           => "أُوكَازيُون",
+    ];
+} else {
+    $products = load_products_by_category('whats-hot', 'en');
+    $tabs = [
+        'whats-hot'     => "WHAT’S HOT",
+        'best-seller'   => "BEST SELLERS",
+        'sale'          => "SALE",
+    ];
+}
+
 ?>
 
 <div class="bg-white pt-[30px] px-[15px]">
@@ -13,21 +29,22 @@ $products = load_products_by_category('whats-hot');
 
     <!-- Tabs Header with Arrows -->
     <div class="flex items-center justify-between border-b border-yellow-200 pb-2 mb-6">
-      <h2 class="text-lg sm:text-xl md:text-2xl font-semibold uppercase tracking-wide">Explore trending</h2>
-      <a href="/products" class="text-black text-sm font-semibold underline underline-offset-4 hover:text-black transition">
-        Shop All Products
-      </a>
+      <h2 class="text-lg sm:text-xl md:text-2xl font-semibold uppercase tracking-wide">
+         <?php
+    echo apply_filters( 'wpml_translate_single_string', 'Explore Trending', 'junior-salon', 'Explore Trending' );
+  ?>
+      
+      </h2>
+     <a href="<?php echo esc_url(site_url($current_lang === 'ar' ? '/ar/المنتجات/' : '/products/')); ?>">
+  <?php echo apply_filters('wpml_translate_single_string', 'Shop All Products', 'junior-salon', 'Shop All Products'); ?>
+</a>
     </div>
 
     <!-- Tab Buttons Slider -->
     <div class="relative overflow-hidden">
       <div id="tab-slider" class="flex items-center gap-2 sm:gap-3 overflow-x-auto scroll-smooth whitespace-nowrap no-scrollbar pr-6">
         <?php
-        $tabs = [
-          'whats-hot'    => "WHAT’S HOT",
-          'best-seller'  => "BEST SELLERS",
-          'sale'         => "SALE",
-        ];
+     
         foreach ($tabs as $slug => $label) {
           echo '<button class="tab-btn shrink-0 px-4 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 border-0 rounded-full transition-all hover:bg-black hover:text-white whitespace-nowrap"
                   data-cat="' . esc_attr($slug) . '">' . esc_html($label) . '</button>';
@@ -72,9 +89,13 @@ $products = load_products_by_category('whats-hot');
     const grid = document.getElementById("product-grid");
     const skeletonTemplate = document.getElementById("product-skeleton-template");
     const tabSlider = document.getElementById("tab-slider");
+let currentCat = "<?php echo (defined('ICL_LANGUAGE_CODE') && ICL_LANGUAGE_CODE === 'ar') ? 'ما-هو-ساخن' : 'whats-hot'; ?>";
+//alert(currentCat);
+   // let currentCat = "whats-hot";
+   let currentLang = "<?php echo esc_js($current_lang); ?>";
 
-    let currentCat = "whats-hot";
-    const cache = {};
+   
+   const cache = {};
 
     if (tabs.length > 0) {
       tabs[0].classList.add("bg-black", "text-white");
@@ -96,7 +117,7 @@ $products = load_products_by_category('whats-hot');
         if (cat === currentCat) return;
 
         currentCat = cat;
-
+//alert(cat);
         tabs.forEach((t) => {
           t.classList.remove("bg-black", "text-white");
           t.classList.add("bg-gray-100", "text-gray-700");
@@ -117,8 +138,8 @@ $products = load_products_by_category('whats-hot');
         requestAnimationFrame(() => {
           showSkeletons();
 
-          fetch(`<?php echo esc_url(admin_url('admin-ajax.php')); ?>?action=load_tab_products&cat=${cat}`)
-            .then((res) => res.text())
+       fetch(`<?php echo esc_url(admin_url('admin-ajax.php')); ?>?action=load_tab_products&cat=${cat}&lang=${currentLang}`)
+   .then((res) => res.text())
             .then((html) => {
               cache[cat] = html;
               grid.style.opacity = "0";

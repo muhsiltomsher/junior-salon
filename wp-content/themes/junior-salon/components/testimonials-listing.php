@@ -1,6 +1,10 @@
 <section class="pt-[30px] pb-[50px] px-[15px]">
-  <h2 class="text-center text-[15px] uppercase font-normal tracking-widest mb-1">Testimonials</h2>
-  <h3 class="text-center text-lg uppercase sm:text-3xl font-bold mb-10 mt-0">Customer Experiences</h3>
+ <h2 class="text-center text-[15px] uppercase font-normal tracking-widest mb-1">
+  <?php echo apply_filters('wpml_translate_single_string', 'Testimonials', 'junior-salon', 'Testimonials'); ?>
+</h2>
+<h3 class="text-center text-lg sm:text-3xl font-bold uppercase mb-10 mt-0">
+  <?php echo apply_filters('wpml_translate_single_string', 'Customer Experiences', 'junior-salon', 'Customer Experiences'); ?>
+</h3>
 
   <div class="mx-auto">
     <div id="testimonial-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[20px]">
@@ -37,11 +41,11 @@
       ?>
     </div>
 
-    <div class="text-center mt-8">
+  <!--  <div class="text-center mt-8">
       <a href="/testimonials" class="text-sm font-semibold underline underline-offset-4 text-black hover:text-black transition">
         VIEW ALL
       </a>
-    </div>
+    </div> -->
   </div>
 </section>
 
