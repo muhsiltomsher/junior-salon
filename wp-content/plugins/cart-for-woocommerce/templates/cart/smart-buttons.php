@@ -9,7 +9,7 @@
 			$display = 'display:none';
 		}
 		?>
-        <div class='fkcart-smart-button-wrap fkcart-panel' id="<?php echo esc_attr($btn['hook']) ?>" style="<?php echo esc_attr($display) ?>">
+        <div class='fkcart-smart-button-wrap fkcart-panel' id="<?php echo esc_attr( $btn['hook'] ) ?>" style="<?php echo esc_attr( $display ) ?>">
 			<?php do_action( $btn['hook'] ); ?>
         </div>
 		<?php

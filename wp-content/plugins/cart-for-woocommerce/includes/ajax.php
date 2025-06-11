@@ -145,11 +145,9 @@ if ( ! class_exists( '\FKCart\Includes\Ajax' ) ) {
 			/** prevent internal redirection during the ajax call */
 			add_filter( 'wp_redirect', '__return_false', 100 );
 
-			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $quantity );
-
 			do_action( 'fkcart_before_add_to_cart', $product_id, $quantity, $variation_id, $attributes, $cart_item_data );
 
-			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $product_id, $quantity );
+			$passed_validation = apply_filters( 'woocommerce_add_to_cart_validation', true, $variation_id > 0 ? $variation_id : $product_id, $quantity );
 
 			if ( false == $passed_validation ) {
 				$message = apply_filters( 'woocommerce_cart_redirect_after_error', get_permalink( $product_id ), $product_id );

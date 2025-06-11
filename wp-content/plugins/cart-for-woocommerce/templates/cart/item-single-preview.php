@@ -14,7 +14,7 @@ if ( ! empty( $cart_item['saving_percent'] ) ) {
 	$is_you_saved_class = 'fkcart_save_class_active';
 }
 ?>
-<div class="fkcart--item fkcart-panel fkcart-preview <?php echo esc_attr($is_you_saved_class); ?>" data-key="<?php esc_attr_e( $cart_item_key ) ?>">
+<div class="fkcart--item fkcart-panel fkcart-preview <?php echo esc_attr( $is_you_saved_class ); ?>" data-key="<?php esc_attr_e( $cart_item_key ) ?>">
 
     <div class="fkcart-thumb-wrap">
 		<?php echo wp_kses_post( $cart_item['thumbnail'] ) ?>

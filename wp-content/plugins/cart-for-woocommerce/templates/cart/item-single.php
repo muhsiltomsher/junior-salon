@@ -66,7 +66,7 @@ if ( ! empty( $_product->get_type() ) ) {
 				?>
                 <div class="fkcart-item-meta-content"><?php echo wp_kses_post( $cart_item['product_meta'] ) ?></div>
 				<?php
-				if ( fkcart_is_variation_product_type( $_product->get_type() ) && ! $cart_item['_fkcart_variation_gift'] && false === $cart_item['is_child_item'] ) {
+				if ( fkcart_product_add_supported( $_product ) && fkcart_is_variation_product_type( $_product->get_type() ) && ! $cart_item['_fkcart_variation_gift'] && false === $cart_item['is_child_item'] ) {
 					$select_options_label = apply_filters( 'fkcart_select_options_label', __( 'Select options', 'woocommerce' ), $cart_item );
 					?>
                     <div class="fkcart-item-meta-content">

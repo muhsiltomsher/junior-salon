@@ -11,7 +11,7 @@
     <!-- END: Modal Header -->
 
     <!-- START: Modal Body -->
-    <div class="fkcart-slider-body" >
+    <div class="fkcart-slider-body">
         <!-- START: Reward -->
         <div class="fkcart-reward-panel fkcart-panel" style="padding-top:0;">
             <div class="fkcart-reward-message fkcart-shimmer"></div>

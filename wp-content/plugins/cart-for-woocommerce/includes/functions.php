@@ -337,48 +337,31 @@ if ( ! function_exists( 'fkcart_map_variation_attributes' ) ) {
 	}
 }
 
-if ( ! function_exists( 'fkcart_supported_upsell_product_type' ) ) {
+if ( ! function_exists( 'fkcart_product_add_supported' ) ) {
 	/**
-	 * @param $_product WC_Product;
+	 * @param $product WC_Product
 	 *
-	 * @return mixed|null
-	 *
+	 * @return bool
 	 */
-	function fkcart_supported_upsell_product_type( $_product ) {
+	function fkcart_product_add_supported( $product ) {
 		if ( fkcart_is_preview() ) {
 			return true;
 		}
-		if ( ! $_product instanceof WC_Product ) {
+
+		if ( ! $product instanceof WC_Product ) {
 			return false;
 		}
 
-		/** Woocommerce Custom Product Addons by Acowebs https://acowebs.com */
-		$wcpa_product_meta = $_product->get_meta( '_wcpa_product_meta' );
-		if ( ! empty( $wcpa_product_meta ) && function_exists( 'WCPA' ) ) {
-			return false;
-		}
-		/**
-		 * WooCommerce Product Add-ons https://woocommerce.com/products/product-add-ons/
-		 */
-		$product_addon = $_product->get_meta( '_product_addons' );
-		if ( ! empty( $product_addon ) && class_exists( '\WC_Product_Addons' ) ) {
+		/** Disallow if not whitelisted product type */
+		if ( false === FKCart\Compatibilities\supportSelectOptions::whitelisted_product_type( $product ) ) {
 			return false;
 		}
 
-		$types = apply_filters( 'fkcart_allow_product_types', array(
-			'simple',
-			'variable',
-			'variation',
-			'variable-subscription',
-			'subscription',
-		) );
-		$type  = $_product->get_type();
-
-		if ( in_array( $type, $types, true ) ) {
-			return true;
+		/** Disallow if blacklisted plugins */
+		if ( true === FKCart\Compatibilities\supportSelectOptions::blacklisted_product( $product ) ) {
+			return false;
 		}
 
-
-		return false;
+		return true;
 	}
 }

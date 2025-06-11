@@ -2292,12 +2292,28 @@ function custom_wishlist_label_exists($label, $product_id) {
 
 
 //***********wpml ********//
+add_action('init', function () {
 do_action( 'wpml_register_single_string', 'junior-salon', 'Shop by Category', 'Shop by Category' );
 do_action( 'wpml_register_single_string', 'junior-salon', 'Shop All Products', 'Shop All Products' );
 do_action( 'wpml_register_single_string', 'junior-salon', 'Shop by Brands', 'Shop by Brands' );
 do_action( 'wpml_register_single_string', 'junior-salon', 'Explore Trending', 'Explore Trending' );
 do_action( 'wpml_register_single_string', 'junior-salon', 'Shop by Age', 'Shop by Age' );
-
 do_action( 'wpml_register_single_string', 'junior-salon', 'Popular Picks', 'Popular Picks' );
-do_action( 'wpml_register_single_string', 'junior-salon', 'SHOP NOW', 'SHOP NOW' );
+
+//do_action( 'wpml_register_single_string', 'junior-salon', 'SHOP NOW', 'SHOP NOW' );
+//do_action( 'wpml_register_single_string', 'junior-salon', 'Shop', 'Shop' );
+do_action( 'wpml_register_single_string', 'woocommerce', 'Add to cart', 'Add to cart' );
+do_action( 'wpml_register_single_string', 'woocommerce', 'Buy Now', 'Buy Now' );
+
+do_action( 'wpml_register_single_string', 'junior-salon', 'FILTER & ORDER', 'FILTER & ORDER' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'SORT BY', 'SORT BY' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Category', 'Category' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Color', 'Color' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Size', 'Size' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Age', 'Age' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Brand', 'Brand' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Price', 'Price' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Apply Filters', 'Apply Filters' );
+});
+
 

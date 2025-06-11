@@ -149,7 +149,6 @@ if ( ! class_exists( '\FKCart\Admin\App_Ajax' ) ) {
 
 			$p_ids = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT posts.ID FROM {$wpdb->posts} AS posts LEFT JOIN {$wpdb->prefix}wc_product_meta_lookup AS product_meta_lookup ON posts.ID = product_meta_lookup.product_id WHERE (posts.post_title LIKE %s OR product_meta_lookup.sku LIKE %s OR posts.ID LIKE %s) AND posts.post_status IN ('" . implode( "','", $post_statuses ) . "') AND posts.post_type = 'product' ORDER BY posts.post_parent ASC, posts.post_title ASC LIMIT 10", $like_term, $like_term, $like_term ) ); //phpcs:ignore WordPress.DB.PreparedSQL,WordPress.DB.PreparedSQLPlaceholders
 
-	
 			$products = [];
 			foreach ( $p_ids as $pid ) {
 				$prod_obj = wc_get_product( $pid );
@@ -159,7 +158,7 @@ if ( ! class_exists( '\FKCart\Admin\App_Ajax' ) ) {
 
 				/** Type checking */
 				$type = $prod_obj->get_type();
-				if ( ! wc_products_array_filter_editable( $prod_obj ) || ! fkcart_supported_upsell_product_type( $prod_obj ) || 'publish' !== $prod_obj->get_status() ) {
+				if ( ! wc_products_array_filter_editable( $prod_obj ) || ! fkcart_product_add_supported( $prod_obj ) || 'publish' !== $prod_obj->get_status() ) {
 					continue;
 				}
 
@@ -169,7 +168,7 @@ if ( ! class_exists( '\FKCart\Admin\App_Ajax' ) ) {
 				}
 
 				/** To include variations or not */
-				if ( 0 === intval( $show_variation ) ) {
+				if ( 0 === $show_variation ) {
 					continue;
 				}
 
@@ -217,7 +216,7 @@ if ( ! class_exists( '\FKCart\Admin\App_Ajax' ) ) {
 		/**
 		 * Format product name
 		 *
-		 * @param $product
+		 * @param $product \WC_Product
 		 *
 		 * @return string
 		 */
@@ -282,7 +281,7 @@ if ( ! class_exists( '\FKCart\Admin\App_Ajax' ) ) {
 			$resp['success'] = false;
 			$resp['msg']     = __( 'No Product Found', 'cart-for-woocommerce' );
 
-			$term       = isset( $request['term'] ) ? $request['term'] : '';
+			$term       = $request['term'] ?? '';
 			$variations = isset( $request['variations'] ) ? wp_validate_boolean( $request['variations'] ) : false;
 			$products   = $this->search_products( $term, $variations );
 
@@ -428,9 +427,9 @@ if ( ! class_exists( '\FKCart\Admin\App_Ajax' ) ) {
 		/**
 		 * Returns formatted product price
 		 *
-		 * @param $product_id
+		 * @param $product
 		 *
-		 * @return int|string
+		 * @return string
 		 */
 		public function get_product_price( $product ) {
 			if ( ! $product instanceof \WC_Product ) {
@@ -463,7 +462,7 @@ if ( ! class_exists( '\FKCart\Admin\App_Ajax' ) ) {
 		}
 
 		/**
-		 * Returns products data with upsell and cross sell
+		 * Returns products data with upsell and cross-sell
 		 *
 		 * @return void
 		 */
@@ -708,7 +707,7 @@ if ( ! class_exists( '\FKCart\Admin\App_Ajax' ) ) {
 		 * @param $plugin_slug
 		 * @param $action
 		 *
-		 * @return array
+		 * @return mixed|void
 		 */
 		public function install_or_activate_addon_plugins( $plugin, $plugin_slug, $action ) {
 			/** Do not allow WordPress to search/download translations, as this will break JS output. */

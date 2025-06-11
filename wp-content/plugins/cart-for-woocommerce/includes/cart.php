@@ -3,7 +3,6 @@
 namespace FKCart\Includes;
 
 use FKCart\Includes\Traits\Instance;
-use WpOrg\Requests\Exception;
 
 #[\AllowDynamicProperties]
 class Cart {
@@ -14,8 +13,11 @@ class Cart {
 		add_action( 'woocommerce_checkout_create_order_line_item', [ $this, 'woocommerce_create_order_line_item' ], 999999, 3 );
 		add_action( 'woocommerce_thankyou', array( $this, 'insert_stats' ) );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'maybe_insert_pending_data' ), 10, 4 );
+
+		/** Unhook FK Cart Pro v3.10.2 (older FB) action */
+		add_action( 'bwf_normalize_contact_meta_after_save', [ $this, 'remove_action_upsell_insert_stats' ], 5 );
 	}
-	
+
 	/**
 	 * @param $item \WC_Order_Item
 	 * @param $cart_item_key
@@ -211,17 +213,13 @@ class Cart {
 			}
 		} catch ( \Exception|\Error $e ) {
 		}
-
 	}
-
 
 	public function convert_to_string( $input_array ) {
 		return wp_json_encode( array_map( 'strval', (array) $input_array ) );
 	}
 
-
 	public function update_addon_views( $addon ) {
-
 		if ( is_null( WC()->cart ) || is_null( WC()->session ) ) {
 			return;
 		}
@@ -257,4 +255,9 @@ class Cart {
 		return WFACP_Core()->reporting->get_ipn_gateways();
 	}
 
+	public function remove_action_upsell_insert_stats() {
+		if ( class_exists( '\FKCart\Pro\Upsells' ) ) {
+			remove_action( 'bwf_normalize_contact_meta_after_save', [ \FKCart\Pro\Upsells::getInstance(), 'insert_stats' ] );
+		}
+	}
 }
