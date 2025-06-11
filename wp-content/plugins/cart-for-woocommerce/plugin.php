@@ -3,7 +3,7 @@
  * Plugin Name: FunnelKit Cart for WooCommerce
  * Plugin URI: https://funnelkit.com/funnelkit-cart/
  * Description: Add a beautiful sliding cart to your WooCommerce site. Let the buyers edit items, add upsells on sliding cart and skip to checkout.
- * Version: 1.8.0
+ * Version: 1.8.1
  * Author: FunnelKit
  * Author URI: https://funnelkit.com
  * License: GPLv3 or later
@@ -67,12 +67,12 @@ if ( ! class_exists( '\FKCart\Plugin' ) ) {
 		 * @return void
 		 */
 		public function define_constant() {
-			define( 'FKCART_VERSION', '1.8.0' );
+			define( 'FKCART_VERSION', '1.8.1' );
 			define( 'FKCART_MIN_WC_VERSION', '5.0' );
 			define( 'FKCART_MIN_FB_PRO_VERSION', '3.0' );
 			define( 'FKCART_PLUGIN_FILE', __FILE__ );
 			define( 'FKCART_PLUGIN_DIR', __DIR__ );
-			define( 'FKCART_DB_VERSION', '1.7.2' );
+			define( 'FKCART_DB_VERSION', '1.8.1' );
 
 			$plugin_url = untrailingslashit( plugin_dir_url( FKCART_PLUGIN_FILE ) );
 			if ( is_ssl() ) {

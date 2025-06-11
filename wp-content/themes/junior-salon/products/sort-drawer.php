@@ -1,4 +1,5 @@
-<h2 class="text-lg font-semibold mb-4">Sort By</h2>
+<h2 class="text-lg font-semibold mb-4"><?php echo apply_filters('wpml_translate_single_string', 'SORT BY', 'junior-salon', 'SORT BY'); ?>
+ </h2>
 
 <div class="flex flex-col gap-3">
   <?php

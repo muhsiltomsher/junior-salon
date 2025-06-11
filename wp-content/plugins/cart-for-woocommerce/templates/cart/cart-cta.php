@@ -55,7 +55,7 @@ do_action( 'fkcart_before_checkout_button', $front );
 				?>
             </div>
         </a>
-
+        <a href="<?php echo esc_url( $shop_link ) ?>" class="fkcart-shopping-link <?php echo( ! $continue_link ? "fkcart-hide" : "" ); ?> <?php echo( $continue_link_behaviour === 'close_cart' ? 'fkcart-modal-close' : '' ); ?>"><?php echo esc_html( $settings['continue_shopping_text'] ); ?></a>
     </div>
 <?php
 do_action( 'fkcart_after_checkout_button', $front );

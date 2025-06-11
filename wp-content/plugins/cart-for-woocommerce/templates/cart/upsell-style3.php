@@ -21,14 +21,13 @@ $show_at_load = wp_doing_ajax();
                 <div class="fkcart-item-wrap">
 					<?php
 					foreach ( $cart_contents as $cart_item_key => $cart_item ) {
-
 						$is_variable = false;
 						$price       = '';
 						$button      = __( 'Add', 'woocommerce' );
 						$product_id  = 0;
 						$permalink   = '';
 						if ( fkcart_is_preview() ) {
-							$_product='';
+							$_product   = '';
 							$price      = $front->get_dummy_product_price( $cart_item );
 							$product_id = $cart_item['product_id'];
 							$p_type     = 'simple';
@@ -40,14 +39,13 @@ $show_at_load = wp_doing_ajax();
 							$p_type      = $_product->get_type();
 							$is_variable = ( fkcart_is_variable_product_type( $_product->get_type() ) );
 
-							$price       = $is_variable ? $_product->get_price_html(): ( $_product->is_on_sale() || $_product->is_taxable() ? $_product->get_price_html() : $_product->get_price_html() );
-							$button      = $is_variable ? __( 'Select options', 'woocommerce' ) : __( 'Add', 'woocommerce' );
-							$product_id  = $_product->get_id();
-							$permalink   = $_product->get_permalink();
+							$price      = $is_variable ? $_product->get_price_html() : ( $_product->is_on_sale() || $_product->is_taxable() ? $_product->get_price_html() : $_product->get_price_html() );
+							$button     = $is_variable ? __( 'Select options', 'woocommerce' ) : __( 'Add', 'woocommerce' );
+							$product_id = $_product->get_id();
+							$permalink  = $_product->get_permalink();
 							if ( false === $_product->is_purchasable() ) {
 								continue;
 							}
-
 						}
 						?>
                         <div class="fkcart--item" data-key="<?php esc_attr_e( $cart_item_key ) ?>">
@@ -61,10 +59,8 @@ $show_at_load = wp_doing_ajax();
 										<?php echo wp_kses_post( $price ) ?>
                                     </div>
 									<?php do_action( 'fkcart_after_upsell_price', $product_id, $cart_item ); ?>
-
-
 									<?php
-									if ( fkcart_supported_upsell_product_type( $_product ) ) {
+									if ( fkcart_product_add_supported( $_product ) ) {
 										?>
                                         <div class="fkcart-<?php echo( $is_variable ? 'select-product' : 'add-product-button' ) ?> fkcart-button" data-id="<?php esc_html_e( $product_id ); ?>">
 											<?php esc_attr_e( $button ) ?>
@@ -75,10 +71,7 @@ $show_at_load = wp_doing_ajax();
 											<?php echo __( 'Select options', 'woocommerce' ); ?>
                                         </a>
 										<?php
-
 									} ?>
-
-
                                 </div>
                             </div>
                             <!-- display on mobile screen -->

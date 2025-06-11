@@ -37,7 +37,7 @@ do_action( 'fkcart_quick_before_view_content' );
 		?>
         <div class="fkcart-view-link-wrap fkcart-panel">
             <a href="<?php echo esc_url( $product->get_permalink() ) ?>" class="fkcart-view-link">
-				<?php echo esc_html(apply_filters( 'fkcart_view_details', __( 'View details', 'woocommerce' ) )); ?>
+				<?php echo esc_html( apply_filters( 'fkcart_view_details', __( 'View details', 'woocommerce' ) ) ); ?>
             </a>
         </div>
         <div class="fkcart-product-form-button fkcart-panel" style="">

@@ -49,7 +49,8 @@ if ( ! class_exists( '\FKCart\Compatibilities\Compatibility' ) ) {
 				'booster.php'                                => class_exists( '\WC_Jetpack' ),
 				'plugins/commercegurus-commerce-kit.php'     => defined( 'CGKIT_MIN_WC_VER' ),
 				'plugins/discount-rules-core-by-flycart.php' => defined( 'WDR_VERSION' ),
-
+				'yithbundle.php'                             => defined( 'YITH_WCPB_VERSION' ),
+				'supportSelectOptions.php'                   => true
 			];
 
 			self::add_files( $files );

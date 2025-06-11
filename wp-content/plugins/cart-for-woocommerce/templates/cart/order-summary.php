@@ -55,17 +55,6 @@ $shipping_tax_calculation_text = isset( $settings['shipping_tax_calculation_text
 		}
 
 
-		if ( ! is_null( WC()->session ) && ! is_null( WC()->cart ) && WC()->cart->get_fees() ) {
-			foreach ( WC()->cart->get_fees() as $fee ) {
-				?>
-
-                <tr class="fkcart_fee">
-                    <th><?php echo esc_html( $fee->name ); ?></th>
-                    <td><?php wc_cart_totals_fee_html( $fee ); ?></td>
-                </tr>
-				<?php
-			}
-		}
 		if ( $shipping_enabled && class_exists( 'FKCart\Pro\Rewards' ) && ! is_null( WC()->session ) ) {
 			$free_shipping = WC()->session->get( '_fkcart_free_shipping_methods', '' );
 			if ( ! empty( $free_shipping ) ) {

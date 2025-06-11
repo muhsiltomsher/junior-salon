@@ -28,7 +28,7 @@ if ( $is_free_product ) {
 	<?php
 }
 ?>
-<div class="fkcart-product-form-field" data-quantity="<?php echo esc_html($quantity) ?>">
+<div class="fkcart-product-form-field" data-quantity="<?php echo esc_html( $quantity ) ?>">
     <div class="woocommerce-variation-add-to-cart variations_button">
 		<?php do_action( 'woocommerce_before_add_to_cart_button' ); ?>
 		<?php if ( ! $is_free_product ): ?>
@@ -42,7 +42,7 @@ if ( $is_free_product ) {
 					do_action( 'woocommerce_before_add_to_cart_quantity' );
 					list( $min, $max, $step ) = $front->get_min_max_step( $product );
 					?>
-                    <input class="fkcart-quantity__input" type="text" autocomplete="off" name="quantity" aria-label="Quantity" step="<?php esc_attr_e( $step ) ?>" min="<?php esc_attr_e( $min ) ?>" max="<?php esc_attr_e( $max ) ?>" pattern="[0-9]*" value="<?php echo esc_attr($quantity) ?>">
+                    <input class="fkcart-quantity__input" type="text" autocomplete="off" name="quantity" aria-label="Quantity" step="<?php esc_attr_e( $step ) ?>" min="<?php esc_attr_e( $min ) ?>" max="<?php esc_attr_e( $max ) ?>" pattern="[0-9]*" value="<?php echo esc_attr( $quantity ) ?>">
 					<?php
 					do_action( 'woocommerce_after_add_to_cart_quantity' );
 					?>

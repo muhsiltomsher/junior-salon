@@ -49,8 +49,6 @@ if ( ! class_exists( '\FKCart\Compatibilities\FunnelkitCheckout' ) ) {
 		}
 
 
-
-
 	}
 
 	new FunnelkitCheckout();

@@ -38,13 +38,6 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 		 * @return array
 		 */
 		private static function get_default_settings() {
-
-			$strike_price_default = false;
-			if ( empty( self::$db_data ) ) {
-				$strike_price_default = true;
-			}
-
-
 			return [
 				'enable_cart'           => 0,
 				'cart_display'          => 'entire',
@@ -69,8 +62,9 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 				'shipping_tax_calculation_text' => __( 'Shipping & taxes may be re-calculated at checkout', 'cart-for-woocommerce' ),
 				'reset_to_variations'           => apply_filters( 'fkcart_reset_to_variations', __( 'Clear', 'woocommerce' ) ),
 				'show_button_lock_icon'         => true,
-				'show_button_price'             => true,
+				'show_button_price'             => false,
 				'show_shop_continue_link'       => true,
+				'continue_shopping_text'        => __( 'Continue Shopping', 'cart-for-woocommerce' ),
 				'checkout_button_text'          => __( 'Checkout', 'woocommerce' ),
 				'zero_state_title'              => __( 'Your Cart is Empty', 'cart-for-woocommerce' ),
 				'zero_state_description'        => __( 'Fill your cart with amazing items', 'cart-for-woocommerce' ),
@@ -95,22 +89,20 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 				'reward_progress_bar_active_color'         => '#2DA815',
 				'reward_progress_bar_enable_animation'     => 'true',
 
-				'css_desktop_width'            => 420,
-				'css_mobile_width'             => 100,
-				'css_bg_color'                 => '#ffffff',
-				'css_border_color'             => '#DEDFEA',
-				'css_accent_color'             => '#0170b9',
-				'css_button_bg_color'          => '#0170b9', // primary
-				'css_button_text_color'        => '#ffffff', // primary font color
-				'css_primary_text_color'       => '#353030', // primary text color
-				'css_secondary_text_color'     => '#82838E', // secondary text color
-				'strike_through_price_color'   => '#E15334', // Strike through price text color
-				'css_upsell_bg_color'          => '#f9f9ff',
-				'css_animation_speed'          => 400,
-				'css_border_radius'            => 8,
-				'css_progressbar_active_color' => '#0170b9',
-				'css_order_summary_bg_color'   => '#f9f9ff',
-
+				'css_desktop_width'               => 420,
+				'css_mobile_width'                => 100,
+				'css_bg_color'                    => '#ffffff',
+				'css_border_color'                => '#DEDFEA',
+				'css_accent_color'                => '#0170b9',
+				'css_button_bg_color'             => '#0170b9', // primary
+				'css_button_text_color'           => '#ffffff', // primary font color
+				'css_primary_text_color'          => '#353030', // primary text color
+				'css_secondary_text_color'        => '#82838E', // secondary text color
+				'strike_through_price_color'      => '#E15334', // Strike through price text color
+				'css_upsell_bg_color'             => '#f9f9ff',
+				'css_animation_speed'             => 400,
+				'css_border_radius'               => 8,
+				'css_progressbar_active_color'    => '#0170b9',
 				'css_icon_color'                  => '#353030',
 				'css_icon_bg_color'               => '#ffffff',
 				'css_icon_count_bg_color'         => '#cf2e2e',
@@ -131,7 +123,7 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 				'cart_menu_text_size'         => '16',
 
 				'smart_buttons'                          => false,
-				'enable_strike_through_discounted_price' => $strike_price_default,
+				'enable_strike_through_discounted_price' => false,
 
 				'enable_special_addon'         => true,
 				'preselect_special_addon'      => true,
@@ -147,7 +139,6 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 				'special_addon_toggle_color'  => '#2DA815',
 				'special_addon_bg_color'      => '#f9f9ff',
 				'special_addon_heading_color' => '#353030',
-
 			];
 		}
 
@@ -356,7 +347,6 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 			return apply_filters( 'fkcart_reward_enabled', ( is_array( $val ) && count( $val ) > 0 ) );
 		}
 
-
 		/**
 		 * Check if Smart Buttons enabled
 		 *
@@ -380,7 +370,6 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 			return true;
 		}
 
-
 		/**
 		 * Get setting value
 		 *
@@ -403,12 +392,15 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 		 * @return string
 		 */
 		public static function get_css_var_style() {
+			$bg_color = self::get_value( 'css_bg_color' );
+			$bg_color = empty( $bg_color ) ? '#fff' : $bg_color;
 
+			$btn_bg_color = self::get_value( 'css_button_bg_color' );
+			$btn_bg_color = empty( $btn_bg_color ) ? '#0170b9' : $btn_bg_color;
 
 			$var_style = "
 		:root {
-		
-			--fkcart-primary-bg-color: " . self::get_value( 'css_button_bg_color' ) . ";
+			--fkcart-primary-bg-color: " . $btn_bg_color . ";
 			--fkcart-primary-font-color: " . self::get_value( 'css_button_text_color' ) . ";
 			--fkcart-primary-text-color: " . self::get_value( 'css_primary_text_color' ) . ";
 			--fkcart-secondary-text-color: " . self::get_value( 'css_secondary_text_color' ) . ";
@@ -423,9 +415,8 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 			--fkcart-progress-bar-active-icon-color: " . self::get_value( 'reward_progress_bar_active_icon_color' ) . ";
 			--fkcart-progress-bar-bg-color-active-icon: " . self::get_value( 'reward_progress_bar_bg_color_active_icon' ) . ";
 			--fkcart-progress-bar-active-color: " . self::get_value( 'reward_progress_bar_active_color' ) . ";
-					
 			
-			--fkcart-bg-color: " . self::get_value( 'css_bg_color' ) . ";
+			--fkcart-bg-color: " . $bg_color . ";
 			--fkcart-slider-desktop-width: " . self::get_value( 'css_desktop_width' ) . "px;
 			--fkcart-slider-mobile-width: " . self::get_value( 'css_mobile_width' ) . "%;
 			--fkcart-animation-duration: " . absint( self::get_value( 'css_animation_speed' ) ) / 1000 . "s;
@@ -438,22 +429,19 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 			--fkcart-toggle-count-bg-color: " . self::get_value( 'css_icon_count_bg_color' ) . ";
 			--fkcart-toggle-count-font-color: " . self::get_value( 'css_icon_count_color' ) . ";
 			--fkcart-progressbar-active-color: " . self::get_value( 'css_progressbar_active_color' ) . ";
-			--fkcart-order-summary-bgcolor: " . self::get_value( 'css_order_summary_bg_color' ) . ";
+			
 			--fkcart-toggle-border-radius: " . self::get_value( 'css_floating_icon_border_radius' ) . "%;
 			--fkcart-toggle-size: " . self::get_value( 'floating_icon_size' ) . ";
 			--fkcart-border-radius: " . self::get_value( 'css_border_radius' ) . "px; 
 			--fkcart-menu-icon-size: " . self::get_value( 'cart_menu_icon_size' ) . "px;
 			--fkcart-menu-text-size: " . self::get_value( 'cart_menu_text_size' ) . "px;
-			
-			
 		}";
 
 			if ( ! empty( self::get_value( 'default_font' ) ) ) {
 				$var_style .= "#fkcart-modal * {font-family: " . htmlspecialchars_decode( self::get_value( 'default_font' ) ) . "}";
 			}
 
-
-			return apply_filters( 'fkcart_css_var_style', $var_style );;
+			return apply_filters( 'fkcart_css_var_style', $var_style );
 		}
 
 		/**
@@ -500,8 +488,8 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 				$languages = pll_the_languages( array( 'raw' => 1, 'hide_if_empty' => 0 ) );
 				if ( ! empty( $languages ) ) {
 					foreach ( $languages as $language ) {
-						if ( $default_language !== $language['locale'] ) {
-							$language_options[ $language['locale'] ] = $language['name'];
+						if ( $default_language !== $language['slug'] ) {
+							$language_options[ $language['slug'] ] = $language['name'];
 						}
 					}
 				}
@@ -580,12 +568,15 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 			}
 			$languages     = self::get_language_code();
 			$language_data = [];
+
+
 			foreach ( $languages as $current_lang ) {
 				if ( isset( $db_values['language'][ $current_lang ] ) ) {
 					$language_data = $db_values['language'][ $current_lang ];
 					break;
 				}
 			}
+
 			/** If current language data is not in db */
 			if ( empty( $language_data ) ) {
 				return $db_values;
@@ -776,7 +767,6 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 				return true;
 			}
 
-
 			return apply_filters( 'fkcart_is_page_builder', false );
 		}
 
@@ -848,7 +838,6 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 
 				$product_attributes = $product->get_variation_attributes();
 
-
 				if ( count( $vars ) == 0 ) {
 					return [];
 				}
@@ -878,15 +867,12 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 				}
 
 				return $available_variable[ $first_key ];
-
 			}
 
 			return [];
 		}
 
 		public static function map_variation_attributes( $variation_attr, $product_attr ) {
-
-
 			$new_product_attr = [];
 			foreach ( $product_attr as $k => $item ) {
 				$k                      = strtolower( $k );//Lowering the Attribute keys
@@ -920,6 +906,5 @@ if ( ! class_exists( '\FKCart\Includes\Data' ) ) {
 		public static function get_variation_product_type() {
 			return [ 'variation', 'subscription_variation', 'variable' ];
 		}
-
 	}
 }

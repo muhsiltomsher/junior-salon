@@ -2,16 +2,16 @@
 # This file is distributed under the GPLv3 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: FunnelKit Cart for WooCommerce 1.8.0\n"
+"Project-Id-Version: FunnelKit Cart for WooCommerce 1.8.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/cart-for-woocommerce\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-05-26T11:21:57+00:00\n"
+"POT-Creation-Date: 2025-06-06T16:58:43+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.10.0\n"
+"X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: cart-for-woocommerce\n"
 
 #. Plugin Name of the plugin
@@ -31,7 +31,7 @@ msgstr ""
 
 #. Author of the plugin
 #: plugin.php
-#: admin/admin-app.php:137
+#: admin/admin-app.php:136
 msgid "FunnelKit"
 msgstr ""
 
@@ -40,67 +40,67 @@ msgstr ""
 msgid "https://funnelkit.com"
 msgstr ""
 
-#: admin/admin-app.php:142
-#: admin/admin-app.php:174
-#: admin/admin-app.php:347
-#: admin/admin-app.php:352
-#: admin/admin-app.php:501
+#: admin/admin-app.php:141
+#: admin/admin-app.php:173
+#: admin/admin-app.php:346
+#: admin/admin-app.php:351
+#: admin/admin-app.php:500
 #: admin/app/dist/main.js:1
 msgid "Cart"
 msgstr ""
 
-#: admin/admin-app.php:144
+#: admin/admin-app.php:143
 msgid "NEW"
 msgstr ""
 
-#: admin/admin-app.php:145
+#: admin/admin-app.php:144
 #: admin/app/dist/main.js:1
 msgid "Checkout"
 msgstr ""
 
-#: admin/admin-app.php:153
+#: admin/admin-app.php:152
 msgid "Cyber Monday"
 msgstr ""
 
-#: admin/admin-app.php:156
+#: admin/admin-app.php:155
 msgid "Black Friday"
 msgstr ""
 
-#: admin/admin-app.php:215
+#: admin/admin-app.php:214
 msgid "Upgrade to Pro"
 msgstr ""
 
-#: admin/admin-app.php:217
-#: admin/admin-app.php:358
+#: admin/admin-app.php:216
+#: admin/admin-app.php:357
 msgid "Settings"
 msgstr ""
 
-#: admin/admin-app.php:323
+#: admin/admin-app.php:322
 msgid "Dashboard"
 msgstr ""
 
-#: admin/admin-app.php:327
+#: admin/admin-app.php:326
 msgid "Funnels"
 msgstr ""
 
-#: admin/admin-app.php:331
+#: admin/admin-app.php:330
 #: admin/app/dist/main.js:1
 msgid "Store Checkout"
 msgstr ""
 
-#: admin/admin-app.php:335
+#: admin/admin-app.php:334
 msgid "Analytics"
 msgstr ""
 
-#: admin/admin-app.php:339
+#: admin/admin-app.php:338
 msgid "Templates"
 msgstr ""
 
-#: admin/admin-app.php:343
+#: admin/admin-app.php:342
 msgid "Automations"
 msgstr ""
 
-#: admin/admin-app.php:365
+#: admin/admin-app.php:364
 msgid "Setup & Help"
 msgstr ""
 
@@ -128,189 +128,193 @@ msgstr ""
 msgid "Unable to update settings"
 msgstr ""
 
-#: admin/app-ajax.php:189
-#: admin/app-ajax.php:520
+#: admin/app-ajax.php:188
+#: admin/app-ajax.php:519
 msgid "fetched products"
 msgstr ""
 
-#: admin/app-ajax.php:283
+#: admin/app-ajax.php:282
 msgid "No Product Found"
 msgstr ""
 
-#: admin/app-ajax.php:293
+#: admin/app-ajax.php:292
 msgid "Products Loaded"
 msgstr ""
 
-#: admin/app-ajax.php:411
+#: admin/app-ajax.php:410
 msgid "On backorder"
 msgstr ""
 
-#: admin/app-ajax.php:414
+#: admin/app-ajax.php:413
 msgid "In stock"
 msgstr ""
 
-#: admin/app-ajax.php:417
+#: admin/app-ajax.php:416
 msgid "Out of stock"
 msgstr ""
 
-#: admin/app-ajax.php:585
+#: admin/app-ajax.php:584
 msgid "fetched coupons"
 msgstr ""
 
-#: admin/app-ajax.php:605
+#: admin/app-ajax.php:604
 msgid "Invalid data provided"
 msgstr ""
 
-#: admin/app-ajax.php:613
+#: admin/app-ajax.php:612
 msgid "Product data updated"
 msgstr ""
 
-#: admin/app-ajax.php:613
+#: admin/app-ajax.php:612
 msgid "Unable to update product data"
 msgstr ""
 
-#: admin/app-ajax.php:661
+#: admin/app-ajax.php:660
 msgid "Fetched checkout data"
 msgstr ""
 
-#: admin/app-ajax.php:661
+#: admin/app-ajax.php:660
 msgid "Unable to fetch checkout data"
 msgstr ""
 
-#: admin/app-ajax.php:727
+#: admin/app-ajax.php:726
 msgid "Undefined error"
 msgstr ""
 
-#: admin/app-ajax.php:746
+#: admin/app-ajax.php:745
 msgid "Plugin slug is missing"
 msgstr ""
 
-#: admin/app-ajax.php:752
+#: admin/app-ajax.php:751
 msgid "Unable to install plugin"
 msgstr ""
 
-#: admin/app-ajax.php:786
+#: admin/app-ajax.php:785
 msgid "Unable to connect to the filesystem. Please confirm your credentials."
 msgstr ""
 
-#: admin/app-ajax.php:810
+#: admin/app-ajax.php:809
 msgid "Plugin basename is missing"
 msgstr ""
 
-#: admin/app-ajax.php:818
+#: admin/app-ajax.php:817
 msgid "You don't have permission to activate plugin"
 msgstr ""
 
-#: admin/app-ajax.php:828
+#: admin/app-ajax.php:827
 msgid "Some error occurred while activating the plugin"
 msgstr ""
 
-#: admin/app-ajax.php:835
+#: admin/app-ajax.php:834
 msgid "Plugin activated"
 msgstr ""
 
-#: admin/app-ajax.php:858
+#: admin/app-ajax.php:857
 msgid "Contact doesn't exists with the id : "
 msgstr ""
 
-#: admin/app-ajax.php:870
+#: admin/app-ajax.php:869
 msgid "Preferences Updated"
 msgstr ""
 
 #: includes/ajax.php:137
-#: includes/ajax.php:213
-#: includes/ajax.php:269
-#: includes/ajax.php:351
-#: includes/ajax.php:389
-#: includes/ajax.php:424
+#: includes/ajax.php:211
+#: includes/ajax.php:267
+#: includes/ajax.php:349
+#: includes/ajax.php:387
+#: includes/ajax.php:422
 msgid "Cart not defined"
 msgstr ""
 
-#: includes/ajax.php:174
+#: includes/ajax.php:172
 msgid "\"%s\" has been added to the cart."
 msgstr ""
 
-#: includes/ajax.php:182
+#: includes/ajax.php:180
 msgid "Unable to add \"%s\" to the cart"
 msgstr ""
 
-#: includes/ajax.php:274
-#: includes/ajax.php:347
-#: includes/ajax.php:356
+#: includes/ajax.php:272
+#: includes/ajax.php:345
+#: includes/ajax.php:354
 msgid "Cart item not found"
 msgstr ""
 
-#: includes/ajax.php:319
+#: includes/ajax.php:317
 msgid "\"%s\" has been updated."
 msgstr ""
 
-#: includes/ajax.php:334
+#: includes/ajax.php:332
 msgid "Some error occurred in updating the \"%s\""
 msgstr ""
 
-#: includes/ajax.php:377
+#: includes/ajax.php:375
 msgid "\"%s\" is removed"
 msgstr ""
 
-#: includes/ajax.php:533
+#: includes/ajax.php:531
 msgid "Security check failed"
 msgstr ""
 
-#: includes/ajax.php:564
+#: includes/ajax.php:562
 msgid "Required data missing"
 msgstr ""
 
-#: includes/data.php:57
+#: includes/data.php:50
 msgid "Review Your Cart"
 msgstr ""
 
-#: includes/data.php:62
+#: includes/data.php:55
 msgid "Coupon Code"
 msgstr ""
 
-#: includes/data.php:63
+#: includes/data.php:56
 msgid "Got a discount code?"
 msgstr ""
 
-#: includes/data.php:64
+#: includes/data.php:57
 msgid "Apply"
 msgstr ""
 
-#: includes/data.php:68
+#: includes/data.php:61
 msgid "Save {{saving_percentage}}"
 msgstr ""
 
-#: includes/data.php:69
+#: includes/data.php:62
 #: templates/cart/order-summary.php:14
 msgid "Shipping & taxes may be re-calculated at checkout"
 msgstr ""
 
-#: includes/data.php:75
+#: includes/data.php:67
+msgid "Continue Shopping"
+msgstr ""
+
+#: includes/data.php:69
 msgid "Your Cart is Empty"
 msgstr ""
 
-#: includes/data.php:76
+#: includes/data.php:70
 msgid "Fill your cart with amazing items"
 msgstr ""
 
-#: includes/data.php:77
+#: includes/data.php:71
 msgid "Shop Now"
 msgstr ""
 
-#: includes/data.php:83
+#: includes/data.php:77
 #: admin/app/dist/main.js:1
 msgid "Frequently Bought Together"
 msgstr ""
 
-#: includes/data.php:87
+#: includes/data.php:81
 msgid "Congrats! You have unlocked all the rewards."
 msgstr ""
 
-#: includes/data.php:140
+#: includes/data.php:132
 msgid "Shipping protection"
 msgstr ""
 
-#: includes/data.php:141
+#: includes/data.php:133
 msgid "Protect your order from damage or theft during shipping."
 msgstr ""
 
@@ -544,6 +548,26 @@ msgid "Checkout Button Text"
 msgstr ""
 
 #: admin/app/dist/main.js:1
+msgid "Enable Continue Shopping Link"
+msgstr ""
+
+#: admin/app/dist/main.js:1
+msgid "Continue Shopping Text"
+msgstr ""
+
+#: admin/app/dist/main.js:1
+msgid "Behaviour"
+msgstr ""
+
+#: admin/app/dist/main.js:1
+msgid "Close Side Cart"
+msgstr ""
+
+#: admin/app/dist/main.js:1
+msgid "Redirect To Shop"
+msgstr ""
+
+#: admin/app/dist/main.js:1
 msgid "Empty Cart"
 msgstr ""
 
@@ -561,14 +585,6 @@ msgstr ""
 
 #: admin/app/dist/main.js:1
 msgid "Link Behaviour"
-msgstr ""
-
-#: admin/app/dist/main.js:1
-msgid "Close Side Cart"
-msgstr ""
-
-#: admin/app/dist/main.js:1
-msgid "Redirect To Shop"
 msgstr ""
 
 #: admin/app/dist/main.js:1
@@ -629,10 +645,6 @@ msgstr ""
 
 #: admin/app/dist/main.js:1
 msgid "Upsell Box Background Color"
-msgstr ""
-
-#: admin/app/dist/main.js:1
-msgid "Order Summary Background Color"
 msgstr ""
 
 #: admin/app/dist/main.js:1
@@ -858,15 +870,19 @@ msgid "For Discount to work, Coupons need to be enabled on this store"
 msgstr ""
 
 #: admin/app/dist/main.js:1
-msgid "For Shipping to work, Shipping need to be enabled on this store"
+msgid "Shipping must be enabled in the store settings for it to work."
 msgstr ""
 
 #: admin/app/dist/main.js:1
-msgid "For free shipping reward the shipping method needs to be configured."
+msgid "To use the Free Shipping reward, the corresponding shipping method must be configured."
 msgstr ""
 
 #: admin/app/dist/main.js:1
 msgid "Learn More"
+msgstr ""
+
+#: admin/app/dist/main.js:1
+msgid "For the Free Shipping reward to work accurately, the default customer location should be set to Geolocation in the store settings."
 msgstr ""
 
 #: admin/app/dist/main.js:1
