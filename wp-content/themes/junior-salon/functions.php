@@ -284,20 +284,15 @@ function load_testimonials_ajax() {
     wp_reset_postdata();
     wp_die();
 }
+function load_products_by_category($cat, $lang = null) {
+    $lang = $lang ?: apply_filters('wpml_current_language', null);
 
-
-
-
-
-
-
-
-// Return product IDs for use in product-grid.php
-function load_products_by_category($cat) {
     $args = [
-        'post_type'      => 'product',
-        'posts_per_page' => 10,
-        'post_status'    => 'publish',
+        'post_type'        => 'product',
+        'posts_per_page'   => 10,
+        'post_status'      => 'publish',
+        'suppress_filters' => false,
+        'lang'             => $lang,
     ];
 
     if ($cat === 'sale') {
@@ -309,19 +304,27 @@ function load_products_by_category($cat) {
                 'type'    => 'NUMERIC',
             ],
         ];
-    } elseif (!empty($cat)) {
-        $args['tax_query'] = [
-            [
-                'taxonomy' => 'product_cat',
-                'field'    => 'slug',
-                'terms'    => $cat,
-            ],
-        ];
+    } else {
+        $term = get_term_by('slug', $cat, 'product_cat');
+
+        if ($term && function_exists('icl_object_id')) {
+            $translated_term_id = icl_object_id($term->term_id, 'product_cat', false, $lang);
+
+            if ($translated_term_id) {
+                $args['tax_query'] = [
+                    [
+                        'taxonomy' => 'product_cat',
+                        'field'    => 'term_id',
+                        'terms'    => $translated_term_id,
+                    ],
+                ];
+            }
+        }
     }
 
     $query = new WP_Query($args);
-    $product_ids = [];
 
+    $product_ids = [];
     while ($query->have_posts()) {
         $query->the_post();
         $product_ids[] = get_the_ID();
@@ -331,20 +334,32 @@ function load_products_by_category($cat) {
     return $product_ids;
 }
 
-// AJAX callback for loading tab products
 function load_tab_products() {
     $cat = sanitize_text_field($_GET['cat'] ?? '');
+   // $lang = apply_filters('wpml_current_language', null);
+$lang = sanitize_text_field($_GET['lang'] ?? apply_filters('wpml_current_language', null));
 
-    if (empty($cat)) {
-        wp_send_json_error('Invalid category.');
+    $slug_map = [
+        'whats-hot' => 'whats-hot',
+        'best-seller' => 'best-seller',
+        'sale' => 'sale',
+        'ما-هو-ساخن' => 'ما-هو-ساخن',
+        'الأكثر-مبيعاً' => 'الأكثر-مبيعاً',
+        'أُوكَازيُون' => 'sale',
+    ];
+
+    $resolved_cat = $slug_map[$cat] ?? '';
+    if (!$resolved_cat) {
+        wp_send_json_error('Invalid category');
     }
 
-    $products = load_products_by_category($cat);
+    $products = load_products_by_category($resolved_cat, $lang);
     include get_template_directory() . '/components/products/product-grid.php';
-    wp_die(); // required for AJAX responses
+    wp_die();
 }
 add_action('wp_ajax_load_tab_products', 'load_tab_products');
 add_action('wp_ajax_nopriv_load_tab_products', 'load_tab_products');
+
 
 
 
@@ -2279,3 +2294,10 @@ function custom_wishlist_label_exists($label, $product_id) {
 //***********wpml ********//
 do_action( 'wpml_register_single_string', 'junior-salon', 'Shop by Category', 'Shop by Category' );
 do_action( 'wpml_register_single_string', 'junior-salon', 'Shop All Products', 'Shop All Products' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Shop by Brands', 'Shop by Brands' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Explore Trending', 'Explore Trending' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'Shop by Age', 'Shop by Age' );
+
+do_action( 'wpml_register_single_string', 'junior-salon', 'Popular Picks', 'Popular Picks' );
+do_action( 'wpml_register_single_string', 'junior-salon', 'SHOP NOW', 'SHOP NOW' );
+
