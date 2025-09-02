@@ -1,9 +1,12 @@
 <?php
-// Get background image from 'feature_banner' on Home Page
-$home_page_id = get_option('page_on_front');
-$feature_banner = get_field('feature_banner', $home_page_id);
-$feature_banner_url = $feature_banner['url'];
+$current_lang = defined('ICL_LANGUAGE_CODE') ? ICL_LANGUAGE_CODE : 'en';
+
+$page_id = ($current_lang === 'ar') ? 624 : get_option('page_on_front');
+
+$feature_banner = get_field('feature_banner', $page_id);
+$feature_banner_url = $feature_banner['url'] ?? '';
 ?>
+
 
 <section class="mt-[30px] px-[15px] relative">
   <!-- Background Image -->

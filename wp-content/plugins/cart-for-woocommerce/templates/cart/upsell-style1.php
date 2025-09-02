@@ -18,6 +18,7 @@ if ( empty( $cart_contents ) ) {
         <div class="fkcart-carousel__viewport" data-slide-item="1" data-count="<?php esc_attr_e( count( $cart_contents ) ); ?>">
             <div class="fkcart-carousel__container">
 				<?php
+				$count = 0;
 				foreach ( $cart_contents as $cart_item_key => $cart_item ) {
 					$is_variable = false;
 					$price       = '';
@@ -25,11 +26,10 @@ if ( empty( $cart_contents ) ) {
 					$product_id  = 0;
 					$permalink   = '';
 					if ( fkcart_is_preview() ) {
-						$_product='';
+						$_product   = '';
 						$price      = $front->get_dummy_product_price( $cart_item );
 						$product_id = $cart_item['product_id'];
 						$p_type     = 'simple';
-
 					} else {
 						/**
 						 * @var $_product WC_Product
@@ -39,7 +39,7 @@ if ( empty( $cart_contents ) ) {
 
 						$is_variable = ( fkcart_is_variable_product_type( $_product->get_type() ) );
 
-						$price      = $is_variable ? $_product->get_price_html() : ( $_product->is_on_sale() || $_product->is_taxable() ? $_product->get_price_html() : $_product->get_price_html() );
+						$price = $is_variable ? $_product->get_price_html() : ( $_product->is_on_sale() || $_product->is_taxable() ? $_product->get_price_html() : $_product->get_price_html() );
 
 						$button     = $is_variable ? __( 'Select options', 'woocommerce' ) : $button;
 						$product_id = $_product->get_id();
@@ -49,6 +49,7 @@ if ( empty( $cart_contents ) ) {
 							continue;
 						}
 					}
+					$count ++;
 					?>
                     <!-- Cart Item -->
                     <div class="fkcart--item fkcart-carousel__slide" data-key="<?php esc_attr_e( $cart_item_key ) ?>">
@@ -57,21 +58,18 @@ if ( empty( $cart_contents ) ) {
                             <div class="fkcart-item-meta">
 								<?php echo wp_kses_post( $cart_item['product_name'] ) ?>
                                 <div class="fkcart-item-meta-content"><?php echo wp_kses_post( $cart_item['product_meta'] ) ?></div>
-
 								<?php
-
-								if ( fkcart_supported_upsell_product_type( $_product ) ) {
+								if ( fkcart_product_add_supported( $_product ) ) {
 									?>
                                     <div class="fkcart-<?php echo esc_attr( $is_variable ? 'select-product' : 'add-product-button' ) ?> fkcart-button" data-id="<?php esc_html_e( $product_id ); ?>">
 										<?php esc_attr_e( $button ) ?>
                                     </div>
 								<?php } else {
 									?>
-                                    <a href="<?php echo esc_url($permalink); ?>" class="fkcart-redirect-product fkcart-button" data-id="<?php esc_html_e( $product_id ); ?>">
+                                    <a href="<?php echo esc_url( $permalink ); ?>" class="fkcart-redirect-product fkcart-button" data-id="<?php esc_html_e( $product_id ); ?>">
 										<?php echo esc_html__( 'Select options', 'woocommerce' ); ?>
                                     </a>
 									<?php
-
 								} ?>
                             </div>
                         </div>
@@ -96,7 +94,9 @@ if ( empty( $cart_contents ) ) {
         </div>
 
         <!-- Carousel Dots -->
-        <div class="fkcart-carousel-dots"></div>
+		<?php
+		echo ( $count > 1 ) ? '<div class="fkcart-carousel-dots"></div>' : '<div class="fkcart-no-carousel"></div>';
+		?>
         <script type="text/template" id="fkcart-carousel-dot-template">
             <div class="fkcart-carousel-dot" type="button"></div>
         </script>

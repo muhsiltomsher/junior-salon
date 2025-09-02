@@ -15,16 +15,16 @@ if ( ! class_exists( '\FKCart\Compatibilities\AllProductSubscriptions' ) ) {
 			return class_exists( '\WCS_ATT_Cart' );
 		}
 
-	public function remove_subscription_action() {
-		if ( isset( $_REQUEST['subscribe-to-action-input'] ) && 'no' === $_REQUEST['subscribe-to-action-input'] ) {
-			foreach ( $_POST as $key => $item ) {
-				if ( false !== strpos( $key, 'convert_to_' ) ) {
-					unset( $_POST[ $key ] );
-					unset( $_REQUEST[ $key ] );
+		public function remove_subscription_action() {
+			if ( isset( $_REQUEST['subscribe-to-action-input'] ) && 'no' === $_REQUEST['subscribe-to-action-input'] ) {
+				foreach ( $_POST as $key => $item ) {
+					if ( false !== strpos( $key, 'convert_to_' ) ) {
+						unset( $_POST[ $key ] );
+						unset( $_REQUEST[ $key ] );
+					}
 				}
 			}
 		}
-	}
 
 		public function add_wrapper() {
 			add_action( 'woocommerce_before_add_to_cart_form', [ $this, 'open_div' ] );

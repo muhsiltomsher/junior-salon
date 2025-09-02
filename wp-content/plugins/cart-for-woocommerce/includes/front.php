@@ -245,8 +245,8 @@ if ( ! class_exists( '\FKCart\Includes\Front' ) ) {
 				'trigger_slide_cart_class'   => $themes_trigger_slide_cart_class,
 				'cart_hash_key'              => apply_filters( 'fkcart_hash_key', 'fkcart_hash_' . md5( get_current_blog_id() . '_' . get_site_url( get_current_blog_id(), '/' ) . get_template() ) ),
 				'fragment_name'              => apply_filters( 'fkcart_fragment_name', 'fkcart_fragments_' . md5( get_current_blog_id() . '_' . get_site_url( get_current_blog_id(), '/' ) . get_template() ) ),
-
-				'smart_buttons_wrapper' => apply_filters( 'fkcart_smart_buttons_wrappers', [
+				'locale'                     => get_locale(),
+				'smart_buttons_wrapper'      => apply_filters( 'fkcart_smart_buttons_wrappers', [
 					'dynamic_buttons'     => [
 						"#fkcart_fkwcs_smart_button" => "#fkcart_fkwcs_smart_button",
 					],
@@ -316,7 +316,7 @@ if ( ! class_exists( '\FKCart\Includes\Front' ) ) {
 		 * @return array
 		 */
 		public function get_preview_item( $_product ) {
-			$show_link = apply_filters( 'fkcart_enable_item_link', true );
+			$show_link = apply_filters( 'fkcart_preview_enable_item_link', true );
 
 			$product_id        = $_product->get_id();
 			$product_permalink = $_product->is_visible() ? $_product->get_permalink() : '';
@@ -384,7 +384,7 @@ if ( ! class_exists( '\FKCart\Includes\Front' ) ) {
 		 */
 		public function get_cart_items( $cart_item_key, $cart_item ) {
 
-			$show_link = apply_filters( 'fkcart_enable_item_link', true );
+			$show_link = apply_filters( 'fkcart_enable_item_link', true, $cart_item_key, $cart_item );
 
 			/** @var \WC_Product $_product */
 			$_product   = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
@@ -512,9 +512,13 @@ if ( ! class_exists( '\FKCart\Includes\Front' ) ) {
 				return false === $raw ? wc_price( $price ) : $price;
 			}
 
-			$price = $this->get_subtotal_row( true ) - WC()->cart->get_discount_total();
-			if ( WC()->cart->display_prices_including_tax() ) {
-				$price = $price - WC()->cart->get_discount_tax();
+			try {
+				$price = $this->get_subtotal_row( true ) - WC()->cart->get_discount_total();
+				if ( WC()->cart->display_prices_including_tax() ) {
+					$price = $price - WC()->cart->get_discount_tax();
+				}
+			} catch ( \Exception|\Error $e ) {
+				$price = 0;
 			}
 
 			return false === $raw ? wc_price( $price ) : $price;
@@ -530,15 +534,18 @@ if ( ! class_exists( '\FKCart\Includes\Front' ) ) {
 				$products = fkcart_get_dummy_products();
 				$price    = $products[1]['sale_price'] + $products[2]['sale_price'];
 
-				return ( false === $raw ) ? wc_price( $price ) : $price;
+				return ( false === $raw ) ? wc_price( $price ) : floatval( $price );
 			}
+
 			$price = 0;
-
-			if ( ! is_null( WC()->cart ) ) {
-				$price = ( WC()->cart->display_prices_including_tax() ) ? WC()->cart->get_subtotal() + WC()->cart->get_subtotal_tax() : WC()->cart->get_subtotal();
+			try {
+				if ( ! is_null( WC()->cart ) ) {
+					$price = ( WC()->cart->display_prices_including_tax() ) ? WC()->cart->get_subtotal() + WC()->cart->get_subtotal_tax() : WC()->cart->get_subtotal();
+				}
+			} catch ( \Error|\Exception $e ) {
 			}
 
-			return ( false === $raw ) ? wc_price( $price ) : $price;
+			return ( false === $raw ) ? wc_price( $price ) : floatval( $price );
 		}
 
 		/**
@@ -950,54 +957,63 @@ if ( ! class_exists( '\FKCart\Includes\Front' ) ) {
 		 * @return string
 		 */
 		public function display_strike_price( $price, $cart_item ) {
-			$product            = $cart_item['data'];
-			$qty                = $cart_item['quantity'];
-			$regular_price      = $product->get_regular_price();
-			$other_product_type = apply_filters( 'fkcart_disable_strike_price_product_type', [
-				'booking',
-				'gift-card',
-				'variation',
-				'subscription_variation',
-				'variable',
-				'variable-subscription',
-				'subscription',
-				'simple-subscription',
-				'bundle'
-			] );
+			try {
 
 
-			// Do not support strike price for booking product and gift cart product
-			if ( ( ! $product->is_type( 'subscription' ) ) && ( in_array( $product->get_type(), $other_product_type ) || '' == $regular_price ) ) {
-				return $price;
-			}
-			if ( ( isset( $cart_item['wcsatt_data'] ) && ! empty( $cart_item['wcsatt_data']['active_subscription_scheme'] ) ) || $product->is_type( 'subscription' ) ) {
-				/** @var $product \WC_Product */
-				$regular = $regular_price * $qty;
+				$product            = $cart_item['data'];
+				$qty                = $cart_item['quantity'];
+				$regular_price      = $product->get_regular_price();
+				$other_product_type = apply_filters( 'fkcart_disable_strike_price_product_type', [
+					'booking',
+					'gift-card',
+					'variable',
+					'bundle',
+					'yith_bundle',
+					'variable-subscription',
+					'subscription',
+					'subscription_variation',
+				] );
 
-				if ( $product->is_on_sale() ) {
-					$price_html = wc_format_sale_price( $regular, $price );
-				} else {
-					$price_html = wc_price( $price );
-
+				if ( '' == $regular_price ) {
+					return $price;
 				}
-			} else {
-				/** @var $product \WC_Product */
-				$regular = $regular_price * $qty;
-				$price   = $this->get_product_subtotal( $product, $qty );
 
-				if ( $regular > 0 && ( round( $price, 2 ) !== round( $regular, 2 ) ) ) {
-					if ( $price > $regular ) {
-						$price_html = wc_price( $price );
-					} else {
+
+				// Do not support strike price for some product type in cart
+				if ( in_array( $product->get_type(), $other_product_type ) ) {
+					return $price;
+				}
+				if ( ( isset( $cart_item['wcsatt_data'] ) && ! empty( $cart_item['wcsatt_data']['active_subscription_scheme'] ) ) ) {
+					/** @var $product \WC_Product */
+					$regular = $regular_price * $qty;
+
+					if ( $product->is_on_sale() ) {
 						$price_html = wc_format_sale_price( $regular, $price );
+					} else {
+						$price_html = $price;
+
 					}
 				} else {
-					$price_html = wc_price( $price );
+					/** @var $product \WC_Product */
+					$regular = $regular_price * $qty;
+					$price   = $this->get_product_subtotal( $product, $qty );
+
+					if ( $regular > 0 && ( round( $price, 2 ) !== round( $regular, 2 ) ) ) {
+						if ( $price > $regular ) {
+							$price_html = wc_price( $price );
+						} else {
+							$price_html = wc_format_sale_price( $regular, $price );
+						}
+					} else {
+						$price_html = wc_price( $price );
+					}
 				}
+
+
+				return $price_html;
+			} catch ( \Error|\Exception $error ) {
+				return $price;
 			}
-
-
-			return $price_html;
 		}
 
 		/**

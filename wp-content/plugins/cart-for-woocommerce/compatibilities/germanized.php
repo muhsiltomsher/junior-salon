@@ -32,7 +32,7 @@ if ( ! class_exists( '\FKCart\Compatibilities\Germanized' ) ) {
                     display: none;
                 }
             </style>
-            <div class="fkcart-order-summary fkcart-panel">
+            <div class="fkcart-order-summary fkcart-panel fkcart-germanized">
                 <div class="fkcart-summary-line-item fkcart-subtotal-wrap ">
                     <div class="fkcart-summary-text"><strong><?php woocommerce_gzd_template_mini_cart_taxes() ?></strong></div>
                     <div class="fkcart-summary-amount"></div>

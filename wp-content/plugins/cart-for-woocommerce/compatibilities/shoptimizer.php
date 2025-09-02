@@ -3,6 +3,7 @@
 namespace FKCart\Compatibilities;
 
 use FKCart\Includes\Data;
+
 if ( ! class_exists( '\FKCart\Compatibilities\Shoptimizer' ) ) {
 
 	class Shoptimizer {

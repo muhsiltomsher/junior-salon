@@ -6,6 +6,7 @@
 namespace FKCart\Compatibilities;
 
 use Yay_Currency\Helpers\YayCurrencyHelper;
+
 if ( ! class_exists( '\FKCart\Compatibilities\YayCurrency' ) ) {
 	class YayCurrency {
 		public function __construct() {

@@ -96,8 +96,8 @@ if ($parent_banner_cat && !is_wp_error($parent_banner_cat)) {
               href="<?php echo get_term_link($cat); ?>" 
               class="inline-block text-sm text-white underline-offset-4 transition-all duration-300 hover-underline"
             >
-              SHOP NOW
-            </a>
+  <?php echo apply_filters('wpml_translate_single_string', 'SHOP NOW', 'junior-salon', 'SHOP NOW'); ?>
+              </a>
           </div>
         </div>
       <?php endforeach; ?>
